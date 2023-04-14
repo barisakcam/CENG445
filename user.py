@@ -1,5 +1,17 @@
 import auth
 
+
+class UserStatus: #userın oyundaki değerlerini tutuyor
+    
+    def __init__() -> None:
+       self.constructor()
+
+    def constructor(self):
+       self.ready = False #ready olunca Truelanacak
+       self.properties = [] #hiçbir şeyi yok daha
+       self.location_index = None #oyun başlayınca board.cells[0] olacak
+       self.money = 0 #oyun başlayınca board.startup olacak
+
 class User:
 
     def __init__(self, username: str, email: str, fullname: str, passwd: str) -> None:
@@ -14,8 +26,7 @@ class User:
         self.fullname = fullname
         self.passwd = auth.hash(passwd)
         ##############################
-        self.ready = False
-
+        self.status = UserStatus()
     def get(self) -> str:
         return str({"username": self.username, \
                     "email": self.email, \
@@ -53,3 +64,9 @@ class User:
     def logout(self) -> None:
         """PART2"""
         pass
+
+
+
+
+
+    

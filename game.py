@@ -24,4 +24,3 @@ def teleport(newcell):
 if __name__ == "__main__":
     board = Board("input.json")
     print(board)
-    board.delete()
