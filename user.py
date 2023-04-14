@@ -1,9 +1,9 @@
 import auth
-
+import pprint
 
 class UserStatus: #userın oyundaki değerlerini tutuyor
     
-    def __init__() -> None:
+    def __init__(self) -> None:
        self.constructor()
 
     def constructor(self):
@@ -12,6 +12,12 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
        self.location_index = None #oyun başlayınca board.cells[0] olacak
        self.money = 0 #oyun başlayınca board.startup olacak
 
+    def reset(self):
+        self.ready = False
+        self.properties.clear()
+        self.location_index = None
+        self.money = 0
+    
 class User:
 
     def __init__(self, username: str, email: str, fullname: str, passwd: str) -> None:
@@ -27,11 +33,18 @@ class User:
         self.passwd = auth.hash(passwd)
         ##############################
         self.status = UserStatus()
+
     def get(self) -> str:
-        return str({"username": self.username, \
-                    "email": self.email, \
-                    "fullname": self.fullname, \
-                    "passwd": self.passwd})
+        return pprint.pformat({"username": self.username, \
+                               "email": self.email, \
+                               "fullname": self.fullname, \
+                               "passwd": self.passwd})
+    
+    def getstatus(self) -> dict:
+        return {"username": self.username, \
+                "properties": [prop.get() for prop in self.status.properties], \
+                "location": self.status.location_index, \
+                "money": self.money}
     
     def update(self, **kwargs) -> None:
         if "username" in kwargs:
@@ -64,6 +77,13 @@ class User:
     def logout(self) -> None:
         """PART2"""
         pass
+
+    def callback(self):
+        pass
+
+    def turncb(self):
+        pass
+
 
 
 
