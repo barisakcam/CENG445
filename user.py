@@ -13,6 +13,8 @@ class User:
         self.email = email
         self.fullname = fullname
         self.passwd = auth.hash(passwd)
+        ##############################
+        self.ready = False
 
     def get(self) -> str:
         return str({"username": self.username, \
