@@ -22,6 +22,15 @@ class AlreadyRolled(Exception):
 class NotRolled(Exception):
     pass
 
+class NotProperty(Exception):
+    pass
+
+class PropertyOwned(Exception):
+    pass
+
+class NotEnoughMoney(Exception):
+    pass
+
 class Board:
 
     def __init__(self, file: str) -> None:
@@ -101,7 +110,21 @@ class Board:
                 raise AlreadyRolled
 
         elif command == "buy":
-            pass
+            if user.status.rolled:
+                if self.cells[user.status.location_index].type == "property":
+                    if self.cells[user.status.location_index].property.owner is None:
+                        if user.status.money >= self.cells[user.status.location_index].property.price:
+                            user.status.money -= self.cells[user.status.location_index].property.price
+                            user.status.properties.append(self.cells[user.status.location_index].property)
+                            self.cells[user.status.location_index].property.owner = user.username
+                        else:
+                            raise NotEnoughMoney
+                    else:
+                        raise PropertyOwned
+                else:
+                    raise NotProperty
+            else:
+                raise NotRolled
         elif command == "upgrade":
             pass
         elif command == "pick":

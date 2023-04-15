@@ -143,6 +143,12 @@ class DemoShell(cmd.Cmd):
                             print("ERROR: User already rolled")
                         except board.NotRolled:
                             print("ERROR: User not rolled yet")
+                        except board.NotProperty:
+                            print("ERROR: Not a property")
+                        except board.PropertyOwned:
+                            print("ERROR: Property is already owned")
+                        except board.NotEnoughMoney:
+                            print("ERROR: Not enough money")
                     else:
                         print("ERROR: Not user's turn")
                 else:

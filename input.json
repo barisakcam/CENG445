@@ -5,10 +5,34 @@
       },
       {
         "type": "property",
-        "name": "bostancı",
+        "name": "sincan",
         "cell": 2,
         "color": "red",
         "price": 120,
+        "rents": [50, 150, 400, 600, 900]
+      },
+      {
+        "type": "property",
+        "name": "kecioren",
+        "cell": 2,
+        "color": "red",
+        "price": 180,
+        "rents": [50, 150, 400, 600, 900]
+      },
+      {
+        "type": "property",
+        "name": "yenimahalle",
+        "cell": 2,
+        "color": "blue",
+        "price": 240,
+        "rents": [50, 150, 400, 600, 900]
+      },
+      {
+        "type": "property",
+        "name": "cankaya",
+        "cell": 2,
+        "color": "blue",
+        "price": 360,
         "rents": [50, 150, 400, 600, 900]
       },
       {
