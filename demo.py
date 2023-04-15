@@ -40,19 +40,16 @@ class DemoShell(cmd.Cmd):
     def do_info_user_status(self, args: str):
         arg_list = args.split()
 
-        if len(arg_list) == 2:
-            if arg_list[0] in self.boards:
-                if arg_list[1] in self.users:
-                    if arg_list[1] in self.boards[arg_list[0]].users:
-                        print(self.boards[arg_list[0]].getuserstate(self.users[arg_list[1]]))
-                    else:
-                        print("ERROR: User is not attached to this board")
+        if len(arg_list) == 1:
+            if arg_list[0] in self.users:
+                if self.users[arg_list[0]].attachedboard is not None:
+                    print(self.users[arg_list[0]].attachedboard.getuserstate(self.users[arg_list[0]]))
                 else:
-                    print("ERROR: User does not exist")
+                    print("ERROR: User is not attached to a board")
             else:
-                print("ERROR: Board does not exist")
+                print("ERROR: User does not exist")
         else:
-            print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
+            print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
     def do_add_board(self, args: str):
         arg_list = args.split()
@@ -124,7 +121,7 @@ class DemoShell(cmd.Cmd):
         if len(arg_list) == 1:
             if arg_list[0] in self.users:
                 try:
-                    self.users[arg_list[0]].ready()
+                    self.users[arg_list[0]].attachedboard.ready(self.users[arg_list[0]])
                 except user.UserNotAttached:
                     print("ERROR: User is not attached to a board")
             else:

@@ -65,15 +65,16 @@ class Board:
             raise UserNotFound
     
     def ready(self, user: User) -> None:
-        self.users[user.username].ready = True
+        self.users[user.username].status.ready = True
 
-        if all([u.ready for u in self.users]):
+        if all([self.users[u].status.ready for u in self.users]):
             for usr in self.users:
-                usr.location_index = 0
-                usr.money = self.startup
+                self.users[usr].location_index = 0
+                self.users[usr].money = self.startup
 
             self.gamestarted = True
-            self.userslist = [self.users[usr] for usr in self.users].sort()
+            self.userslist = [self.users[usr] for usr in self.users]
+            self.userslist.sort(key=lambda x: x.username)
             print(self.userslist)
             self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
 
@@ -85,7 +86,7 @@ class Board:
             user.status.location_index += move
             user.status.location_index %= len(board.cells)
             print(f"{user.username} landed on ", board.cells[user.status.location_index].type)
-            
+
         if command == "buy":
             pass
         if command == "upgrade":
