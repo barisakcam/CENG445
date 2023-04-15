@@ -108,7 +108,7 @@ class Board:
             self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
 
 
-    def turn(self, user: User, command: str, args=[]) -> None:
+    def turn(self, user: User, command: str, newcell=None) -> None:
         if command == "roll": #TODO: Increase money when start is passed (modulo)
             if not user.status.rolled:
                 move = random.randint(1,6)
@@ -158,10 +158,10 @@ class Board:
             if user.status.rolled:
                 if self.cells[user.status.location_index].type == "teleport":
                     if user.status.money >= self.teleport:
-                        if(len(args) >= 3):
+                        if newcell is not None: # Bu if ve InsufficientArguments demo.py:140'tan sonra gerekssiz oldu gibi
                             user.status.money -= self.teleport
-                            user.status.location_index = args[2]
-                            print(f"{user.username} teleported to ", self.cells[args[2]].type)
+                            user.status.location_index = int(newcell)
+                            print(f"{user.username} teleported to ", self.cells[int(newcell)].type)
                         else:
                             raise InsufficientArguments
                     else:

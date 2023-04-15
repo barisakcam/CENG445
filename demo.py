@@ -131,12 +131,18 @@ class DemoShell(cmd.Cmd):
     def do_play(self, args: str):
         arg_list = args.split()
 
-        if len(arg_list) == 2:
+        if len(arg_list) == 2 or len(arg_list) == 3:
             if arg_list[0] in self.users:
                 if self.users[arg_list[0]].attachedboard is not None:
                     if self.users[arg_list[0]].status.isplaying:
                         try:
-                            self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1], arg_list)
+                            if arg_list[1] == "teleport":
+                                if len(arg_list) == 2:
+                                    print("ERROR: Missing transport argument")
+                                else:
+                                    self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1], newcell=arg_list[2])
+                            else:
+                                self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1])
                         except board.GameCommandNotFound:
                             print("ERROR: Game command not found") #TODO: Catch wrong commands
                         except board.AlreadyRolled:
@@ -162,7 +168,7 @@ class DemoShell(cmd.Cmd):
             else:
                 print("ERROR: User does not exist")
         else:
-            print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
+            print(f"Wrong number of arguments: 2 or 3 expected, {len(arg_list)} received")
 
     #######################################################
 
