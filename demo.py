@@ -8,6 +8,7 @@ class DemoShell(cmd.Cmd):
 
     boards = {}
     users = {}
+    valid_play_commands = ["roll", "buy", "upgrade", "pick", "bail", "teleport", "end"]
 
     def do_add_user(self, args: str):
         arg_list = args.split()
@@ -114,6 +115,40 @@ class DemoShell(cmd.Cmd):
                     print("ERROR: User does not exist")
             else:
                 print("ERROR: Board does not exist")
+        else:
+            print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
+
+    def do_ready(self, args: str):
+        arg_list = args.split()
+
+        if len(arg_list) == 1:
+            if arg_list[0] in self.users:
+                try:
+                    self.users[arg_list[0]].ready()
+                except user.UserNotAttached:
+                    print("ERROR: User is not attached to a board")
+            else:
+                print("ERROR: User does not exist")
+        else:
+            print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
+
+    def do_play(self, args: str):
+        arg_list = args.split()
+
+        if len(arg_list) == 2:
+            if arg_list[0] in self.users:
+                if self.users[arg_list[0]].attachedboard is not None:
+                    if self.users[arg_list[0]].status.isplaying:
+                        try:
+                            self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1])
+                        except:
+                            print("ERROR: Invalid command (probably)") #TODO: Catch wrong commands
+                    else:
+                        print("ERROR: Not user's turn")
+                else:
+                    print("ERROR: User is not attached to a board")
+            else:
+                print("ERROR: User does not exist")
         else:
             print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
 

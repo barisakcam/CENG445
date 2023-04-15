@@ -1,5 +1,6 @@
 import json
 import pprint
+import random
 from user import User
 from cell import Cell
 
@@ -7,6 +8,9 @@ class UserExists(Exception):
     pass
 
 class UserNotFound(Exception):
+    pass
+
+class GameAlreadyStarted(Exception):
     pass
 
 class Board:
@@ -18,14 +22,13 @@ class Board:
         with open(file, "r") as f:
             data = json.load(f)
         
-        self.cells = []
-        for i in data["cells"]:
-            self.cells.append(Cell(i))
-        #userların kendisi dictionary zaten liste iş görür gibi sanki
         self.users = {}
-        self.chance = data["chances"]
+        self.gamestarted = False
+        self.userslist = [] #list to determine order of turns, set when game starts, sorted to make sure its deterministic
+        self.turncounter = 0
 
-        #NEW
+        self.cells = [Cell(i) for i in data["cells"]]
+        self.chance = data["chances"]
         self.startup = data["startup"]
         self.upgrade = data["upgrade"]
         self.tax = data["tax"]
@@ -45,23 +48,60 @@ class Board:
     def attach(self, user: User) -> None:
         if user.username in self.users:
             raise UserExists
+        elif self.gamestarted:
+            raise GameAlreadyStarted #TODO: Handle
         else:
+            user.attachedboard = self
             self.users[user.username] = user
 
     def detach(self, user: User) -> None:
         if user.username in self.users:
+            user.attachedboard = None
             del self.users[user.username]
+
+            if self.gamestarted:
+                pass #TODO: Terminate game
         else:
             raise UserNotFound
     
-    def ready(self, user) -> None:
+    def ready(self, user: User) -> None:
         self.users[user.username].ready = True
 
-    def turn(self, user, command) -> None:
-        """TODO"""
-        pass
+        if all([u.ready for u in self.users]):
+            for usr in self.users:
+                usr.location_index = 0
+                usr.money = self.startup
 
-    def getuserstate(self, user) -> str:
+            self.gamestarted = True
+            self.userslist = [self.users[usr] for usr in self.users].sort()
+            print(self.userslist)
+            self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
+
+
+    def turn(self, user: User, command: str) -> None:
+        if command == "roll":
+            move = random.randint(1,6)
+            print(user.username, "tossed", move)
+            user.status.location_index += move
+            user.status.location_index %= len(board.cells)
+            print(f"{user.username} landed on ", board.cells[user.status.location_index].type)
+            
+        if command == "buy":
+            pass
+        if command == "upgrade":
+            pass
+        if command == "pick":
+            pass
+        if command == "bail":
+            pass
+        if command == "teleport":
+            pass
+        if command == "end": #Additional
+            user.status.isplaying = False
+            self.turncounter += 1
+            self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
+
+    def getuserstate(self, user: User) -> str:
         return pprint.pformat(self.users[user.username].getstatus())
 
     def getboardstate(self) -> str:

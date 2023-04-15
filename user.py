@@ -1,6 +1,9 @@
 import auth
 import pprint
 
+class UserNotAttached(Exception):
+    pass
+
 class UserStatus: #userın oyundaki değerlerini tutuyor
     
     def __init__(self) -> None:
@@ -11,6 +14,7 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
        self.properties = [] #hiçbir şeyi yok daha
        self.location_index = None
        self.money = 0 #oyun başlayınca board.startup olacak
+       self.isplaying = False #True when its user's turn
 
     def reset(self):
         self.ready = False
@@ -37,6 +41,7 @@ class User:
         self.passwd = auth.hash(passwd)
         ##############################
         self.status = UserStatus()
+        self.attachedboard = None
 
     def get(self) -> str:
         return pprint.pformat({"username": self.username, \
@@ -48,10 +53,15 @@ class User:
         return {"username": self.username, \
                 "properties": [prop.get() for prop in self.status.properties], \
                 "location": self.status.location_index, \
-                "money": self.status.money}
+                "money": self.status.money,
+                "ready": self.status.ready,
+                "isplaying": self.status.isplaying}
     
     def ready(self):
-        self.status.ready = True
+        if self.attachedboard is not None:
+            self.status.ready = True
+        else:
+            raise UserNotAttached
     
     def update(self, **kwargs) -> None:
         if "username" in kwargs:
