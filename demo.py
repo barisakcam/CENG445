@@ -36,6 +36,23 @@ class DemoShell(cmd.Cmd):
         else:
             print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
+    def do_info_user_status(self, args: str):
+        arg_list = args.split()
+
+        if len(arg_list) == 2:
+            if arg_list[0] in self.boards:
+                if arg_list[1] in self.users:
+                    if arg_list[1] in self.boards[arg_list[0]].users:
+                        print(self.boards[arg_list[0]].getuserstate(self.users[arg_list[1]]))
+                    else:
+                        print("ERROR: User is not attached to this board")
+                else:
+                    print("ERROR: User does not exist")
+            else:
+                print("ERROR: Board does not exist")
+        else:
+            print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
+
     def do_add_board(self, args: str):
         arg_list = args.split()
 

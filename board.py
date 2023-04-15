@@ -54,7 +54,7 @@ class Board:
         pass
 
     def getuserstate(self, user) -> str:
-        return pprint.pformat(self.users[user.username])
+        return pprint.pformat(self.users[user.username].getstatus())
 
     def getboardstate(self) -> str:
         return pprint.pformat({"cells": [cell.get() for cell in self.cells],

@@ -44,7 +44,7 @@ class User:
         return {"username": self.username, \
                 "properties": [prop.get() for prop in self.status.properties], \
                 "location": self.status.location_index, \
-                "money": self.money}
+                "money": self.status.money}
     
     def update(self, **kwargs) -> None:
         if "username" in kwargs:
