@@ -13,6 +13,15 @@ class UserNotFound(Exception):
 class GameAlreadyStarted(Exception):
     pass
 
+class GameCommandNotFound(Exception):
+    pass
+
+class AlreadyRolled(Exception):
+    pass
+
+class NotRolled(Exception):
+    pass
+
 class Board:
 
     def __init__(self, file: str) -> None:
@@ -69,8 +78,8 @@ class Board:
 
         if all([self.users[u].status.ready for u in self.users]):
             for usr in self.users:
-                self.users[usr].location_index = 0
-                self.users[usr].money = self.startup
+                self.users[usr].status.location_index = 0
+                self.users[usr].status.money = self.startup
 
             self.gamestarted = True
             self.userslist = [self.users[usr] for usr in self.users]
@@ -80,27 +89,37 @@ class Board:
 
 
     def turn(self, user: User, command: str) -> None:
-        if command == "roll":
-            move = random.randint(1,6)
-            print(user.username, "tossed", move)
-            user.status.location_index += move
-            user.status.location_index %= len(board.cells)
-            print(f"{user.username} landed on ", board.cells[user.status.location_index].type)
+        if command == "roll": #TODO: Increase money when start is passed (modulo)
+            if not user.status.rolled:
+                move = random.randint(1,6)
+                print(user.username, "tossed", move)
+                user.status.location_index += move
+                user.status.location_index %= len(self.cells)
+                print(f"{user.username} landed on ", self.cells[user.status.location_index].type)
+                user.status.rolled = True
+            else:
+                raise AlreadyRolled
 
-        if command == "buy":
+        elif command == "buy":
             pass
-        if command == "upgrade":
+        elif command == "upgrade":
             pass
-        if command == "pick":
+        elif command == "pick":
             pass
-        if command == "bail":
+        elif command == "bail":
             pass
-        if command == "teleport":
+        elif command == "teleport":
             pass
-        if command == "end": #Additional
-            user.status.isplaying = False
-            self.turncounter += 1
-            self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
+        elif command == "end": #Additional
+            if user.status.rolled:
+                user.status.isplaying = False
+                user.status.rolled = False
+                self.turncounter += 1
+                self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
+            else:
+                raise NotRolled
+        else:
+            raise GameCommandNotFound
 
     def getuserstate(self, user: User) -> str:
         return pprint.pformat(self.users[user.username].getstatus())

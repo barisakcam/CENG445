@@ -8,7 +8,6 @@ class DemoShell(cmd.Cmd):
 
     boards = {}
     users = {}
-    valid_play_commands = ["roll", "buy", "upgrade", "pick", "bail", "teleport", "end"]
 
     def do_add_user(self, args: str):
         arg_list = args.split()
@@ -138,8 +137,12 @@ class DemoShell(cmd.Cmd):
                     if self.users[arg_list[0]].status.isplaying:
                         try:
                             self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1])
-                        except:
-                            print("ERROR: Invalid command (probably)") #TODO: Catch wrong commands
+                        except board.GameCommandNotFound:
+                            print("ERROR: Game command not found") #TODO: Catch wrong commands
+                        except board.AlreadyRolled:
+                            print("ERROR: User already rolled")
+                        except board.NotRolled:
+                            print("ERROR: User not rolled yet")
                     else:
                         print("ERROR: Not user's turn")
                 else:
@@ -172,4 +175,6 @@ if __name__ == "__main__":
     ds.onecmd("attach_user 1 kaan")
     ds.onecmd("attach_user 1 baris")
     ds.onecmd("info_board 1")
+    ds.onecmd("ready kaan")
+    ds.onecmd("ready baris")
     ds.cmdloop()
