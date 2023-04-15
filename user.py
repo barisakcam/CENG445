@@ -103,6 +103,9 @@ class User:
     def turncb(self):
         pass
 
+    def __repr__(self):
+        return self.username
+
 
 
 
