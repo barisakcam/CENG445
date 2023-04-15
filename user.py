@@ -9,7 +9,7 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
     def constructor(self):
        self.ready = False #ready olunca Truelanacak
        self.properties = [] #hiçbir şeyi yok daha
-       self.location_index = None #oyun başlayınca board.cells[0] olacak
+       self.location_index = None
        self.money = 0 #oyun başlayınca board.startup olacak
 
     def reset(self):
@@ -17,6 +17,10 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
         self.properties.clear()
         self.location_index = None
         self.money = 0
+
+    def start_game(self,board):
+        self.location_index = 0
+        self.money = board.startup #oyun başlayınca board.startup olacak
     
 class User:
 
@@ -45,6 +49,9 @@ class User:
                 "properties": [prop.get() for prop in self.status.properties], \
                 "location": self.status.location_index, \
                 "money": self.status.money}
+    
+    def ready(self):
+        self.status.ready = True
     
     def update(self, **kwargs) -> None:
         if "username" in kwargs:

@@ -135,7 +135,9 @@ if __name__ == "__main__":
 
     # onecmd's are example, comment them if do not want to run
     ds.onecmd("add_board 1 input.json")
-    ds.onecmd("add_user asd 123 123 123")
-    ds.onecmd("attach_user 1 asd")
+    ds.onecmd("add_user kaan kaan@mp kaan_gocmen 12345678")
+    ds.onecmd("add_user baris baris@mp baris_akcam 87654321")
+    ds.onecmd("attach_user 1 kaan")
+    ds.onecmd("attach_user 1 baris")
     ds.onecmd("info_board 1")
     ds.cmdloop()

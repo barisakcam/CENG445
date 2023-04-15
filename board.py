@@ -25,6 +25,14 @@ class Board:
         self.users = {}
         self.chance = data["chances"]
 
+        #NEW
+        self.startup = data["startup"]
+        self.upgrade = data["upgrade"]
+        self.tax = data["tax"]
+        self.jailbail = data["jailbail"]
+        self.teleport = data["teleport"]
+        self.lottery = data["lottery"]
+
     def delete(self) -> None:
         self.cells = []
         self.users = {}
