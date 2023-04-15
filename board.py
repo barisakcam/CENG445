@@ -97,6 +97,7 @@ class Board:
 
         if all([self.users[u].status.ready for u in self.users]):
             for usr in self.users:
+                #usr.start_game(self)
                 self.users[usr].status.location_index = 0
                 self.users[usr].status.money = self.startup
 

@@ -149,6 +149,12 @@ class DemoShell(cmd.Cmd):
                             print("ERROR: Property is already owned")
                         except board.NotEnoughMoney:
                             print("ERROR: Not enough money")
+                        except board.NotJail:
+                            print("ERROR: Not in jail")
+                        except board.NotTeleport:
+                            print("ERROR: Not in teleport")
+                        except board.InsufficientArguments:
+                            print("ERROR: There are insufficient arguments for the command")
                     else:
                         print("ERROR: Not user's turn")
                 else:
