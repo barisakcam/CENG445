@@ -136,7 +136,7 @@ class DemoShell(cmd.Cmd):
                 if self.users[arg_list[0]].attachedboard is not None:
                     if self.users[arg_list[0]].status.isplaying:
                         try:
-                            if arg_list[1] == "teleport":
+                            if arg_list[1] == "teleport" or arg_list == "pick":
                                 if len(arg_list) == 2:
                                     print("ERROR: Missing transport argument")
                                 else:

@@ -57,6 +57,7 @@ class Board:
 
         self.cells = [Cell(i) for i in data["cells"]]
         self.chance = data["chances"]
+        self.chance_index = 0
         self.startup = data["startup"]
         self.upgrade = data["upgrade"]
         self.tax = data["tax"]
@@ -111,12 +112,62 @@ class Board:
     def turn(self, user: User, command: str, newcell=None) -> None:
         if command == "roll": #TODO: Increase money when start is passed (modulo)
             if not user.status.rolled:
-                move = random.randint(1,6)
-                print(user.username, "tossed", move)
+                dice1 = random.randint(1,6)
+                dice2 = random.randint(1,6)
+                move = dice1+dice2
+
+                if user.status.jail:
+                    if dice1 == dice2:
+                        print(user.username, "tossed double and bailed")
+                        user.status.jail = False
+                    else:
+                        user.status.jail = False
+                        return #bunu yapmama izin var mı, bir tur beklemesi lazım
+                    
+                else:
+                    print(user.username, "tossed", move)
+
+                
                 user.status.location_index += move
                 user.status.location_index %= len(self.cells)
                 print(f"{user.username} landed on ", self.cells[user.status.location_index].type)
+
+                if move>user.status.location_index:
+                    pass #TODO: give salary
+
                 user.status.rolled = True
+
+                if self.cells[user.status.location_index].type == "chance card": #other chance cards need pick
+                    print(f"{user.username} drew ", self.chance[self.chance_index])
+
+                    if self.chance[self.chance_index]["type"] == "goto jail":
+                        while not self.cells[user.status.location_index].type == "jail":
+                            user.status.location_index += 1
+                            user.status.location_index %= len(self.cells)
+
+                        user.status.jail = True
+                    elif self.chance[self.chance_index]["type"] == "tax":
+                        user.status.money-=self.tax * len(user.status.properties)
+                    elif self.chance[self.chance_index]["type"] == "lottery":
+                        user.status.money+=self.lottery
+                    elif self.chance[self.chance_index]["type"] == "jail free":
+                        user.status.jailcards +=1
+
+                        
+                    self.chance_index = (self.chance_index+1) % len(self.chance)
+
+                elif self.cells[user.status.location_index].type == "goto jail":
+                    while not self.cells[user.status.location_index].type == "jail":
+                        user.status.location_index += 1
+                        user.status.location_index %= len(self.cells)
+
+                    user.status.jail = True
+                elif self.cells[user.status.location_index].type == "tax":
+                    user.status.money-=self.tax * len(user.status.properties)
+                    
+                elif self.cells[user.status.location_index].type == "jail":
+                    user.status.jail = True
+
             else:
                 raise AlreadyRolled
 
@@ -143,27 +194,28 @@ class Board:
         elif command == "pick":
             pass
         elif command == "bail":
-            if self.cells[user.status.location_index].type == "jail":
-                if user.status.money >= self.jailbail:
-                    user.status.money -= self.cells[user.status.location_index].property.price
-                    user.status.properties.append(self.cells[user.status.location_index].property)
-                    self.cells[user.status.location_index].property.owner = user.username
+            if not user.status.rolled:
+                if self.cells[user.status.location_index].type == "jail":
+                    if user.status.money >= self.jailbail:
+                        user.status.money -= self.cells[user.status.location_index].property.price
+                        user.status.properties.append(self.cells[user.status.location_index].property)
+                        self.cells[user.status.location_index].property.owner = user.username
 
-                    print(f"{user.username} bailed")
+                        print(f"{user.username} bailed")
+                        user.status.jail = False
+                    else:
+                        raise NotEnoughMoney
                 else:
-                    raise NotEnoughMoney
+                    raise NotJail
             else:
-                raise NotJail
+                raise AlreadyRolled
         elif command == "teleport":
             if user.status.rolled:
                 if self.cells[user.status.location_index].type == "teleport":
                     if user.status.money >= self.teleport:
-                        if newcell is not None: # Bu if ve InsufficientArguments demo.py:140'tan sonra gerekssiz oldu gibi
-                            user.status.money -= self.teleport
-                            user.status.location_index = int(newcell)
-                            print(f"{user.username} teleported to ", self.cells[int(newcell)].type)
-                        else:
-                            raise InsufficientArguments
+                        user.status.money -= self.teleport
+                        user.status.location_index = int(newcell)
+                        print(f"{user.username} teleported to ", self.cells[int(newcell)].type)
                     else:
                         raise NotEnoughMoney
                 else:
