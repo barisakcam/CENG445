@@ -25,11 +25,21 @@ class NotRolled(Exception):
 class NotProperty(Exception):
     pass
 
+class NotTeleport(Exception):
+    pass
+
+class NotJail(Exception):
+    pass
+
 class PropertyOwned(Exception):
     pass
 
 class NotEnoughMoney(Exception):
     pass
+
+class InsufficientArguments(Exception):
+    pass
+
 
 class Board:
 
@@ -97,7 +107,7 @@ class Board:
             self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
 
 
-    def turn(self, user: User, command: str) -> None:
+    def turn(self, user: User, command: str, args=[]) -> None:
         if command == "roll": #TODO: Increase money when start is passed (modulo)
             if not user.status.rolled:
                 move = random.randint(1,6)
@@ -117,6 +127,8 @@ class Board:
                             user.status.money -= self.cells[user.status.location_index].property.price
                             user.status.properties.append(self.cells[user.status.location_index].property)
                             self.cells[user.status.location_index].property.owner = user.username
+
+                            print(f"{user.username} bought ", self.cells[user.status.location_index].property)
                         else:
                             raise NotEnoughMoney
                     else:
@@ -130,9 +142,33 @@ class Board:
         elif command == "pick":
             pass
         elif command == "bail":
-            pass
+            if self.cells[user.status.location_index].type == "jail":
+                if user.status.money >= self.jailbail:
+                    user.status.money -= self.cells[user.status.location_index].property.price
+                    user.status.properties.append(self.cells[user.status.location_index].property)
+                    self.cells[user.status.location_index].property.owner = user.username
+
+                    print(f"{user.username} bailed")
+                else:
+                    raise NotEnoughMoney
+            else:
+                raise NotJail
         elif command == "teleport":
-            pass
+            if user.status.rolled:
+                if self.cells[user.status.location_index].type == "teleport":
+                    if user.status.money >= self.teleport:
+                        if(len(args) >= 3):
+                            user.status.money -= self.teleport
+                            user.status.location_index = args[2]
+                            print(f"{user.username} teleported to ", self.cells[args[2]].type)
+                        else:
+                            raise InsufficientArguments
+                    else:
+                        raise NotEnoughMoney
+                else:
+                    raise NotTeleport
+            else:
+                raise NotRolled
         elif command == "end": #Additional
             if user.status.rolled:
                 user.status.isplaying = False

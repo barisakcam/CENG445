@@ -136,7 +136,7 @@ class DemoShell(cmd.Cmd):
                 if self.users[arg_list[0]].attachedboard is not None:
                     if self.users[arg_list[0]].status.isplaying:
                         try:
-                            self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1])
+                            self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1], arg_list)
                         except board.GameCommandNotFound:
                             print("ERROR: Game command not found") #TODO: Catch wrong commands
                         except board.AlreadyRolled:

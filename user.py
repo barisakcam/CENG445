@@ -15,7 +15,7 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
        self.location_index = None
        self.money = 0 #oyun başlayınca board.startup olacak
        self.isplaying = False #True when its user's turn
-       self.rolled = False #True after roll command
+       self.rolled = False #True after roll commands
 
     #Obsolete
     def reset(self):
