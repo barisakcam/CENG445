@@ -5,47 +5,231 @@
       },
       {
         "type": "property",
-        "name": "sincan",
-        "cell": 2,
-        "color": "red",
-        "price": 120,
-        "rents": [50, 150, 400, 600, 900]
+        "name": "akyurt",
+        "cell": 1,
+        "color": "brown",
+        "price": 60,
+        "rents": [20, 40, 100, 200, 300]
+      },
+      {
+        "type": "chance card"
       },
       {
         "type": "property",
-        "name": "kecioren",
-        "cell": 2,
-        "color": "red",
-        "price": 180,
-        "rents": [50, 150, 400, 600, 900]
-      },
-      {
-        "type": "property",
-        "name": "yenimahalle",
-        "cell": 2,
-        "color": "blue",
-        "price": 240,
-        "rents": [50, 150, 400, 600, 900]
-      },
-      {
-        "type": "property",
-        "name": "cankaya",
-        "cell": 2,
-        "color": "blue",
-        "price": 360,
-        "rents": [50, 150, 400, 600, 900]
-      },
-      {
-        "type": "teleport"
+        "name": "kalecik",
+        "cell": 3,
+        "color": "brown",
+        "price": 60,
+        "rents": [25, 45, 150, 250, 400]
       },
       {
         "type": "tax"
       },
       {
+        "type": "teleport"
+      },
+      {
+        "type": "property",
+        "name": "nallihan",
+        "cell": 5,
+        "color": "blue",
+        "price": 100,
+        "rents": [40, 75, 220, 600, 900]
+      },
+      {
+        "type": "chance card"
+      },
+      {
+        "type": "property",
+        "name": "ayas",
+        "cell": 6,
+        "color": "blue",
+        "price": 100,
+        "rents": [40, 75, 220, 600, 900]
+      },
+      {
+        "type": "property",
+        "name": "bala",
+        "cell": 8,
+        "color": "blue",
+        "price": 120,
+        "rents": [45, 80, 240, 625, 950]
+      },
+      {
         "type": "jail"
       },
       {
-        "type": "chance"
+        "type": "property",
+        "name": "gudul",
+        "cell": 10,
+        "color": "pink",
+        "price": 140,
+        "rents": [60, 110, 325, 650, 1000]
+      },
+      {
+        "type": "lottery"
+      },
+      {
+        "type": "property",
+        "name": "kahramankazan",
+        "cell": 12,
+        "color": "pink",
+        "price": 140,
+        "rents": [60, 110, 325, 650, 1000]
+      },
+      {
+
+        "type": "property",
+        "name": "kizilcahamam",
+        "cell": 13,
+        "color": "pink",
+        "price": 160,
+        "rents": [70, 130, 350, 700, 1100]
+      },
+      {
+        "type": "teleport"
+      },
+      {
+        "type": "property",
+        "name": "evren",
+        "cell": 15,
+        "color": "orange",
+        "price": 180,
+        "rents": [80, 150, 375, 800, 1250]
+      },
+      {
+        "type": "chance card"
+      },
+      {
+        "type": "property",
+        "name": "sereflikochisar",
+        "cell": 17,
+        "color": "orange",
+        "price": 180,
+        "rents": [80, 150, 375, 800, 1250]
+      },
+      {
+        "type": "property",
+        "name": "camlidere",
+        "cell": 18,
+        "color": "orange",
+        "price": 200,
+        "rents": [90, 165, 390, 900, 1325]
+      },
+      {
+        "type": "lottery"
+      },
+      {
+        "type": "property",
+        "name": "cubuk",
+        "cell": 20,
+        "color": "red",
+        "price": 220,
+        "rents": [100, 180, 420, 975, 1400]
+      },
+      {
+        "type": "chance card"
+      },
+      {
+        "type": "property",
+        "name": "elmadag",
+        "cell": 22,
+        "color": "red",
+        "price": 220,
+        "rents": [100, 180, 425, 975, 1400]
+      },
+      {
+        "type": "property",
+        "name": "beypazari",
+        "cell": 23,
+        "color": "red",
+        "price": 240,
+        "rents": [120, 200, 450, 1000, 1500]
+      },
+      {
+        "type": "teleport"
+      },
+      {
+        "type": "property",
+        "name": "cubuk",
+        "cell": 25,
+        "color": "yellow",
+        "price": 260,
+        "rents": [125, 220, 475, 1050, 1575]
+      },
+      {
+        "type": "property",
+        "name": "elmadag",
+        "cell": 26,
+        "color": "yellow",
+        "price": 260,
+        "rents": [125, 220, 475, 1050, 1575]
+      },
+      {
+        "type": "lottery"
+      },
+      {
+        "type": "property",
+        "name": "beypazari",
+        "cell": 28,
+        "color": "yellow",
+        "price": 280,
+        "rents": [135, 230, 490, 1080, 1625]
+      },
+      {
+        "type": "goto jail"
+      },
+      {
+        "type": "property",
+        "name": "golbasi",
+        "cell": 30,
+        "color": "green",
+        "price": 300,
+        "rents": [150, 250, 520, 1120, 1670]
+      },
+      {
+        "type": "property",
+        "name": "pursaklar",
+        "cell": 31,
+        "color": "green",
+        "price": 300,
+        "rents": [150, 250, 520, 1120, 1670]
+      },
+      {
+        "type": "chance card"
+      },
+      {
+        "type": "property",
+        "name": "altindag",
+        "cell": 33,
+        "color": "green",
+        "price": 320,
+        "rents": [160, 280, 560, 1200, 1720]
+      },
+      {
+        "type": "teleport"
+      },
+      {
+        "type": "chance card"
+      },
+      {
+        "type": "property",
+        "name": "altindag",
+        "cell": 36,
+        "color": "navy",
+        "price": 350,
+        "rents": [175, 350, 600, 1300, 1850]
+      }, 
+      {
+        "type": "tax"
+      },     
+      {
+        "type": "property",
+        "name": "altindag",
+        "cell": 38,
+        "color": "green",
+        "price": 400,
+        "rents": [200, 400, 700, 1400, 2000]
       }
     ],
     "upgrade": 50,
@@ -56,7 +240,37 @@
     "startup": 1500,
     "chances": [
       {
-        "type": "jump"
+        "type": "teleport"
+      },
+      {
+        "type": "goto jail"
+      },
+      {
+        "type": "upgrade"
+      },
+      {
+        "type": "color downgrade"
+      },
+      {
+        "type": "jail free"
+      },
+      {
+        "type": "lottery"
+      },
+      {
+        "type": "tax"
+      },
+      {
+        "type": "lottery"
+      },
+      {
+        "type": "color upgrade"
+      },
+      {
+        "type": "teleport"
+      },
+      {
+        "type": "downgrade"
       }
     ]
   }
