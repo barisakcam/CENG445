@@ -132,7 +132,6 @@ class Board:
                 user.status.location_index += move
                 user.status.location_index %= len(self.cells)
                 self.sendcallbacks(f"{user.username} landed on {user.status.location_index}, which is type {self.cells[user.status.location_index].type}")
-                self.sendturncb(f'Possible moves are: {self.getpossiblemoves(user)}')
 
                 if move > user.status.location_index:
                     #TODO: is salary amount specified? 500 temporarily
@@ -149,27 +148,35 @@ class Board:
                             user.status.location_index += 1
                             user.status.location_index %= len(self.cells)
 
+                        self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}")
                         user.status.jail = True
 
                     elif self.chance[self.chance_index]["type"] == "tax":
+                        self.sendcallbacks(f"{user.username} paid {self.tax * len(user.status.properties)} tax")
                         user.status.money -= self.tax * len(user.status.properties)
 
                     elif self.chance[self.chance_index]["type"] == "lottery":
+                        self.sendcallbacks(f"{user.username} won {self.lottery} lottery")
                         user.status.money += self.lottery
 
                     elif self.chance[self.chance_index]["type"] == "jail free":
+                        self.sendcallbacks(f"{user.username} gained a jail free card")
                         user.status.jailcards += 1
 
                     elif self.chance[self.chance_index]["type"] == "upgrade":
-                        pass
+                        user.status.pick = True
+
                     elif self.chance[self.chance_index]["type"] == "downgrade":
-                        pass
+                        user.status.pick = True
+
                     elif self.chance[self.chance_index]["type"] == "color upgrade":
-                        pass
+                        user.status.pick = True
+
                     elif self.chance[self.chance_index]["type"] == "color downgrade":
-                        pass
+                        user.status.pick = True
+
                     elif self.chance[self.chance_index]["type"] == "teleport":
-                        pass
+                        user.status.teleport = True
 
                         
                     self.chance_index = (self.chance_index+1) % len(self.chance)
@@ -179,13 +186,18 @@ class Board:
                         user.status.location_index += 1
                         user.status.location_index %= len(self.cells)
 
+                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}")
                     user.status.jail = True
 
                 elif self.cells[user.status.location_index].type == "tax":
-                    user.status.money-=self.tax * len(user.status.properties)
+                    self.sendcallbacks(f"{user.username} paid {self.tax * len(user.status.properties)} tax")
+                    user.status.money -= self.tax * len(user.status.properties)
                     
                 elif self.cells[user.status.location_index].type == "jail":
+                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}")
                     user.status.jail = True
+
+                self.sendturncb(user, f'Possible moves are: {self.getpossiblemoves(user)}')
 
             else:
                 raise AlreadyRolled
@@ -279,11 +291,17 @@ class Board:
                 if self.cells[user.status.location_index].property.owner == user.username:
                     result.append("upgrade")
 
-            if self.cells[user.status.location_index].type == "teleport":
+            if user.status.teleport:
                 result.append("teleport")
+
+            if user.status.pick:
+                result.append("pick")
 
             if self.cells[user.status.location_index].type == "chance card":
                 pass
+
+            if not user.status.teleport and not user.status.pick:
+                result.append("end")
 
         else:
             result.append("roll")
