@@ -214,7 +214,7 @@
       },
       {
         "type": "property",
-        "name": "altindag",
+        "name": "yenimahalle",
         "cell": 36,
         "color": "navy",
         "price": 350,
@@ -225,9 +225,9 @@
       },     
       {
         "type": "property",
-        "name": "altindag",
+        "name": "cankaya",
         "cell": 38,
-        "color": "green",
+        "color": "navy",
         "price": 400,
         "rents": [200, 400, 700, 1400, 2000]
       }
