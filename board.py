@@ -346,17 +346,18 @@ class Board:
                                     self.sendcallbacks(f"{user.username} tried to downgrade {self.cells[int(pick)].property.name} but failed since it is level 1.")
                             elif user.status.pick == "color upgrade":
                                 for cell in self.cells:
+                                    print
                                     if cell.type == "property" and cell.property.color == self.cells[int(pick)].property.color:
-                                        if self.cells[int(pick)].property.level < 5:
-                                            self.cells[int(pick)].property.level += 1
+                                        if cell.property.level < 5:
+                                            cell.property.level += 1
                                             self.sendcallbacks(f"{user.username} upgraded {cell.property.name} to level {cell.property.level}.")
                                         else:
                                             self.sendcallbacks(f"{user.username} tried to upgrade {cell.property.name} but failed since it is max level.")
                             elif user.status.pick == "color downgrade":
                                 for cell in self.cells:
                                     if cell.type == "property" and cell.property.color == self.cells[int(pick)].property.color:
-                                        if self.cells[int(pick)].property.level > 1:
-                                            self.cells[int(pick)].property.level -= 1
+                                        if cell.property.level > 1:
+                                            cell.property.level -= 1
                                             self.sendcallbacks(f"{user.username} downgraded {cell.property.name} to level {cell.property.level}.")
                                         else:
                                             self.sendcallbacks(f"{user.username} tried to downgrade {cell.property.name} but failed since it is level 1.")
@@ -376,7 +377,7 @@ class Board:
                 if self.cells[user.status.location_index].type == "jail":
                     if user.status.jailcards > 0:
                         user.status.jailcards -= 1
-                        self.sendcallbacks(f"{user.username} bailed for a jailcard. {user.username} has {user.status.jailcards} jail free cards remaining.")
+                        self.sendcallbacks(f"{user.username} bailed for a jail free card. {user.username} has {user.status.jailcards} jail free cards remaining.")
                         user.status.jail = False
                     else:
                         if user.status.money >= self.jailbail:
