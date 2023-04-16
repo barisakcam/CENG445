@@ -22,6 +22,7 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
         self.paidteleport = False
         self.freeteleport = False
         self.pick = None
+        self.propertyop = False
 
     def reset(self):
         self.ready = False
