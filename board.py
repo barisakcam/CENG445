@@ -181,7 +181,7 @@ class Board:
                             user.status.location_index += 1
                             user.status.location_index %= len(self.cells)
 
-                        self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jailcards.")
+                        self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jail free cards.")
                         user.status.jail = True
 
                     elif self.chance[self.chance_index]["type"] == "tax":
@@ -198,7 +198,7 @@ class Board:
 
                     elif self.chance[self.chance_index]["type"] == "jail free":
                         user.status.jailcards += 1
-                        self.sendcallbacks(f"{user.username} gained a jail free card. {user.username} has {user.status.jailcards} jailcards.")
+                        self.sendcallbacks(f"{user.username} gained a jail free card. {user.username} has {user.status.jailcards} jail free cards.")
 
                     elif self.chance[self.chance_index]["type"] == "upgrade":
                         if len(user.status.properties) == 0:
@@ -234,7 +234,7 @@ class Board:
                         user.status.location_index += 1
                         user.status.location_index %= len(self.cells)
 
-                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jailcards.")
+                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jail free cards.")
                     user.status.jail = True
 
                 elif self.cells[user.status.location_index].type == "tax":
@@ -246,7 +246,7 @@ class Board:
                         self.gameover()
                     
                 elif self.cells[user.status.location_index].type == "jail":
-                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jailcards.")
+                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jail free cards.")
                     user.status.jail = True
 
                 elif self.cells[user.status.location_index].type == "property":
@@ -284,6 +284,7 @@ class Board:
                             user.status.properties.append(self.cells[user.status.location_index].property)
                             self.cells[user.status.location_index].property.owner = user.username
                             self.sendcallbacks(f"{user.username} bought {self.cells[user.status.location_index].property.name}.")
+                            user.status.propertyop = True
                         else:
                             raise NotEnoughMoney
                     else:
@@ -301,6 +302,7 @@ class Board:
                             user.status.money -= self.upgrade
                             self.cells[user.status.location_index].property.level += 1
                             self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                            user.status.propertyop = True
                         else:
                             raise NotEnoughMoney
                     else:
@@ -357,7 +359,7 @@ class Board:
                 if self.cells[user.status.location_index].type == "jail":
                     if user.status.jailcards > 0:
                         user.status.jailcards -= 1
-                        self.sendcallbacks(f"{user.username} bailed for a jailcard. {user.username} has {user.status.jailcards} jailcards remaining.")
+                        self.sendcallbacks(f"{user.username} bailed for a jailcard. {user.username} has {user.status.jailcards} jail free cards remaining.")
                         user.status.jail = False
                     else:
                         if user.status.money >= self.jailbail:
@@ -405,6 +407,7 @@ class Board:
                     if user.status.pick is None:
                         user.status.isplaying = False
                         user.status.rolled = False
+                        user.status.propertyop = False
                         self.turncounter += 1
                         self.turncounter %= len(self.userslist)
                         self.userslist[self.turncounter].status.isplaying = True
@@ -440,12 +443,13 @@ class Board:
         result = []
 
         if user.status.rolled:
-            if self.cells[user.status.location_index].type == "property":
-                if self.cells[user.status.location_index].property.owner is None:
-                    result.append("buy")
-                if self.cells[user.status.location_index].property.owner == user.username:
-                    if self.cells[user.status.location_index].property.level < 5:
-                        result.append("upgrade")
+            if not user.status.propertyop:
+                if self.cells[user.status.location_index].type == "property":
+                    if self.cells[user.status.location_index].property.owner is None:
+                        result.append("buy")
+                    if self.cells[user.status.location_index].property.owner == user.username:
+                        if self.cells[user.status.location_index].property.level < 5:
+                            result.append("upgrade")
 
             if user.status.freeteleport or user.status.paidteleport:
                 result.append("teleport")
@@ -469,12 +473,12 @@ class Board:
     
     def gameover(self) -> None:
         print("GAME OVER. RESULTS:")
-        for user in self.userslist:
+        for user in self.users:
             print("==================================")
-            self.getuserstate(user)
+            print(self.getuserstate(self.users[user]))
         
-        for user in self.userslist:
-            user.reset()
+        for user in self.users:
+            self.users[user].reset()
         self.delete()
 
     def __repr__(self) -> str:
