@@ -346,7 +346,6 @@ class Board:
                                     self.sendcallbacks(f"{user.username} tried to downgrade {self.cells[int(pick)].property.name} but failed since it is level 1.")
                             elif user.status.pick == "color upgrade":
                                 for cell in self.cells:
-                                    print
                                     if cell.type == "property" and cell.property.color == self.cells[int(pick)].property.color:
                                         if cell.property.level < 5:
                                             cell.property.level += 1
