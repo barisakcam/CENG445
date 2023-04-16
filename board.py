@@ -226,17 +226,18 @@ class Board:
 
                 elif self.cells[user.status.location_index].type == "property":
                     if self.cells[user.status.location_index].property.owner is not None:
-                        if user.status.money < self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]:
-                            self.users[self.cells[user.status.location_index].property.owner].money += user.status.money
-                            user.status.money = 0
+                        if self.cells[user.status.location_index].property.owner != user.username:
+                            if user.status.money < self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]:
+                                self.users[self.cells[user.status.location_index].property.owner].status.money += user.status.money
+                                user.status.money = 0
 
-                            self.sendturncb(user, f'{user.username} could not paid rent and bankrupted.')
+                                self.sendturncb(user, f'{user.username} could not paid rent and bankrupted.')
 
-                            self.gameover()
-                        else:
-                            self.users[self.cells[user.status.location_index].property.owner].money += self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
-                            user.status.money -= self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
-                            self.sendturncb(user, f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.users[self.cells[user.status.location_index].property.owner].username}.')
+                                self.gameover()
+                            else:
+                                self.users[self.cells[user.status.location_index].property.owner].status.money += self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                                user.status.money -= self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                                self.sendturncb(user, f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.users[self.cells[user.status.location_index].property.owner].username}.')
 
                 elif self.cells[user.status.location_index].type == "teleport":
                     user.status.teleport = True
@@ -287,11 +288,23 @@ class Board:
                 if self.cells[int(pick)].type == "property":
                     if self.cells[int(pick)].property.owner == user.username:
                         if user.status.pick == "upgrade":
-                            pass
+                            if self.cells[user.status.location_index].property.level < 5:
+                                self.cells[user.status.location_index].property.level += 1
+                                self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                            else:
+                                self.sendcallbacks(f"{user.username} tried to upgrade {self.cells[user.status.location_index].property.name} but failed since it is max level.")
                         elif user.status.pick == "downgrade":
-                            pass
+                            if self.cells[user.status.location_index].property.level > 1:
+                                self.cells[user.status.location_index].property.level -= 1
+                                self.sendcallbacks(f"{user.username} downgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                            else:
+                                self.sendcallbacks(f"{user.username} tried to downgrade {self.cells[user.status.location_index].property.name} but failed since it is level 1.")
                         elif user.status.pick == "color upgrade":
-                            pass
+                            if self.cells[user.status.location_index].property.level < 5:
+                                self.cells[user.status.location_index].property.level += 1
+                                self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                            else:
+                                self.sendcallbacks(f"{user.username} tried to upgrade {self.cells[user.status.location_index].property.name} but failed since it is max level.")
                         elif user.status.pick == "color downgrade":
                             pass
                     else:
@@ -377,12 +390,13 @@ class Board:
                 if self.cells[user.status.location_index].property.owner is None:
                     result.append("buy")
                 if self.cells[user.status.location_index].property.owner == user.username:
-                    result.append("upgrade")
+                    if self.cells[user.status.location_index].property.level < 5:
+                        result.append("upgrade")
 
             if user.status.teleport:
                 result.append("teleport")
 
-            if user.status.pick:
+            if user.status.pick is not None:
                 result.append("pick")
 
             if self.cells[user.status.location_index].type == "chance card":
