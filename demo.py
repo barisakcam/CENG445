@@ -183,6 +183,8 @@ class DemoShell(cmd.Cmd):
                             print("ERROR: Given cell index is out of range")
                         except board.PropertyOp:
                             print("ERROR: Only one property operation can be done in a turn")
+                        except board.PickError:
+                            print("ERROR: No need to pick a property")
                     else:
                         print("ERROR: Not user's turn")
                 else:
@@ -217,4 +219,5 @@ class DemoShell(cmd.Cmd):
         
 if __name__ == "__main__":
     ds = DemoShell()
+    ds.onecmd("playback test_cmds.txt")
     ds.cmdloop()

@@ -204,7 +204,7 @@ class Board:
 
                     elif self.chance[self.chance_index]["type"] == "jail free":
                         user.status.jailcards += 1
-                        self.sendcallbacks(f"{user.username} gained a jail free card. {user.username} has {user.status.jailcards} jail free cards.")
+                        self.sendcallbacks(f"{user.username} has {user.status.jailcards} jail free cards.")
 
                     elif self.chance[self.chance_index]["type"] == "upgrade":
                         if len(user.status.properties) == 0:
@@ -346,7 +346,7 @@ class Board:
                                     self.sendcallbacks(f"{user.username} tried to downgrade {self.cells[user.status.location_index].property.name} but failed since it is level 1.")
                             elif user.status.pick == "color upgrade":
                                 for cell in self.cells:
-                                    if cell.property.color == self.cells[int(pick)].property.color:
+                                    if cell.type == "property" and cell.property.color == self.cells[int(pick)].property.color:
                                         if self.cells[user.status.location_index].property.level < 5:
                                             self.cells[user.status.location_index].property.level += 1
                                             self.sendcallbacks(f"{user.username} upgraded {cell.property.name} to level {cell.property.level}.")
@@ -354,7 +354,7 @@ class Board:
                                             self.sendcallbacks(f"{user.username} tried to upgrade {cell.property.color} but failed since it is max level.")
                             elif user.status.pick == "color downgrade":
                                 for cell in self.cells:
-                                    if cell.property.color == self.cells[int(pick)].property.color:
+                                    if cell.type == "property" and cell.property.color == self.cells[int(pick)].property.color:
                                         if self.cells[user.status.location_index].property.level > 1:
                                             self.cells[user.status.location_index].property.level -= 1
                                             self.sendcallbacks(f"{user.username} downgraded {cell.property.name} to level {cell.property.level}.")
