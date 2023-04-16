@@ -88,7 +88,7 @@ class Board:
     def delete(self) -> None:
         self.cells = []
         self.users = {}
-        self.chance = {}
+        self.chance = []
 
     def update(self, file: str) -> None:
         self.delete()
@@ -163,7 +163,7 @@ class Board:
                 user.status.rolled = True
 
                 if self.cells[user.status.location_index].type == "chance card": #other chance cards need pick
-                    self.sendcallbacks(f"{user.username} drew {self.chance[self.chance_index].type}")
+                    self.sendcallbacks(f"{user.username} drew {self.chance[self.chance_index]['type']}")
 
                     if self.chance[self.chance_index]["type"] == "goto jail":
                         while not self.cells[user.status.location_index].type == "jail":
