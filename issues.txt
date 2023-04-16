@@ -1,0 +1,2 @@
+1. buyladıktan sonra possible moves listesi yok
+2. teleport ettikten sonra inilen kareyi gerçekleştiremiyor, yerine notinteleport hatası veriyor.
