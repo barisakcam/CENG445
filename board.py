@@ -58,6 +58,8 @@ class PickError(Exception):
 class InvalidTeleport(Exception):
     pass
 
+class CellIndexError(Exception):
+    pass
 
 class Board:
 
@@ -107,7 +109,8 @@ class Board:
             del self.users[user.username]
 
             if self.gamestarted:
-                pass #TODO: Terminate game
+                self.sendcallbacks(f"{user.username} detached.")
+                self.gameover()
         else:
             raise UserNotFound
     
@@ -160,7 +163,7 @@ class Board:
                 user.status.rolled = True
 
                 if self.cells[user.status.location_index].type == "chance card": #other chance cards need pick
-                    self.sendcallbacks(f"{user.username} drew {self.chance[self.chance_index]}")
+                    self.sendcallbacks(f"{user.username} drew {self.chance[self.chance_index].type}")
 
                     if self.chance[self.chance_index]["type"] == "goto jail":
                         while not self.cells[user.status.location_index].type == "jail":
@@ -173,6 +176,10 @@ class Board:
                     elif self.chance[self.chance_index]["type"] == "tax":
                         self.sendcallbacks(f"{user.username} paid {self.tax * len(user.status.properties)} tax")
                         user.status.money -= self.tax * len(user.status.properties)
+
+                        if user.status.money < 0:
+                            self.sendcallbacks(f'{user.username} could not paid tax and bankrupted.')
+                            self.gameover()
 
                     elif self.chance[self.chance_index]["type"] == "lottery":
                         self.sendcallbacks(f"{user.username} won {self.lottery} lottery")
@@ -222,6 +229,10 @@ class Board:
                 elif self.cells[user.status.location_index].type == "tax":
                     self.sendcallbacks(f"{user.username} paid {self.tax * len(user.status.properties)} tax")
                     user.status.money -= self.tax * len(user.status.properties)
+
+                    if user.status.money < 0:
+                        self.sendcallbacks(f'{user.username} could not paid tax and bankrupted.')
+                        self.gameover()
                     
                 elif self.cells[user.status.location_index].type == "jail":
                     self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}")
@@ -233,14 +244,12 @@ class Board:
                             if user.status.money < self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]:
                                 self.users[self.cells[user.status.location_index].property.owner].status.money += user.status.money
                                 user.status.money = 0
-
-                                self.sendturncb(user, f'{user.username} could not paid rent and bankrupted.')
-
+                                self.sendcallbacks(f'{user.username} could not paid rent and bankrupted.')
                                 self.gameover()
                             else:
                                 self.users[self.cells[user.status.location_index].property.owner].status.money += self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
                                 user.status.money -= self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
-                                self.sendturncb(user, f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.users[self.cells[user.status.location_index].property.owner].username}.')
+                                self.sendcallbacks(f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.users[self.cells[user.status.location_index].property.owner].username}.')
 
                 elif self.cells[user.status.location_index].type == "teleport":
                     user.status.paidteleport = True
@@ -269,6 +278,7 @@ class Board:
                     raise NotProperty
             else:
                 raise NotRolled
+            
         elif command == "upgrade":
             if user.status.rolled:
                 if self.cells[user.status.location_index].property.owner == user.username:
@@ -288,40 +298,43 @@ class Board:
             
         elif command == "pick":
             if user.status.pick is not None:
-                if self.cells[int(pick)].type == "property":
-                    if self.cells[int(pick)].property.owner == user.username:
-                        if user.status.pick == "upgrade":
-                            if self.cells[user.status.location_index].property.level < 5:
-                                self.cells[user.status.location_index].property.level += 1
-                                self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
-                            else:
-                                self.sendcallbacks(f"{user.username} tried to upgrade {self.cells[user.status.location_index].property.name} but failed since it is max level.")
-                        elif user.status.pick == "downgrade":
-                            if self.cells[user.status.location_index].property.level > 1:
-                                self.cells[user.status.location_index].property.level -= 1
-                                self.sendcallbacks(f"{user.username} downgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
-                            else:
-                                self.sendcallbacks(f"{user.username} tried to downgrade {self.cells[user.status.location_index].property.name} but failed since it is level 1.")
-                        elif user.status.pick == "color upgrade":
-                            for cell in self.cells:
-                                if cell.property.color == self.cells[int(pick)].property.color:
-                                    if self.cells[user.status.location_index].property.level < 5:
-                                        self.cells[user.status.location_index].property.level += 1
-                                        self.sendcallbacks(f"{user.username} upgraded {cell.property.name} to level {cell.property.level}.")
-                                    else:
-                                        self.sendcallbacks(f"{user.username} tried to upgrade {cell.property.color} but failed since it is max level.")
-                        elif user.status.pick == "color downgrade":
-                            for cell in self.cells:
-                                if cell.property.color == self.cells[int(pick)].property.color:
-                                    if self.cells[user.status.location_index].property.level > 1:
-                                        self.cells[user.status.location_index].property.level -= 1
-                                        self.sendcallbacks(f"{user.username} downgraded {cell.property.name} to level {cell.property.level}.")
-                                    else:
-                                        self.sendcallbacks(f"{user.username} tried to downgrade {cell.property.color} but failed since it is max level.")
+                if int(pick) < len(self.cells):
+                    if self.cells[int(pick)].type == "property":
+                        if self.cells[int(pick)].property.owner == user.username:
+                            if user.status.pick == "upgrade":
+                                if self.cells[user.status.location_index].property.level < 5:
+                                    self.cells[user.status.location_index].property.level += 1
+                                    self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                                else:
+                                    self.sendcallbacks(f"{user.username} tried to upgrade {self.cells[user.status.location_index].property.name} but failed since it is max level.")
+                            elif user.status.pick == "downgrade":
+                                if self.cells[user.status.location_index].property.level > 1:
+                                    self.cells[user.status.location_index].property.level -= 1
+                                    self.sendcallbacks(f"{user.username} downgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                                else:
+                                    self.sendcallbacks(f"{user.username} tried to downgrade {self.cells[user.status.location_index].property.name} but failed since it is level 1.")
+                            elif user.status.pick == "color upgrade":
+                                for cell in self.cells:
+                                    if cell.property.color == self.cells[int(pick)].property.color:
+                                        if self.cells[user.status.location_index].property.level < 5:
+                                            self.cells[user.status.location_index].property.level += 1
+                                            self.sendcallbacks(f"{user.username} upgraded {cell.property.name} to level {cell.property.level}.")
+                                        else:
+                                            self.sendcallbacks(f"{user.username} tried to upgrade {cell.property.color} but failed since it is max level.")
+                            elif user.status.pick == "color downgrade":
+                                for cell in self.cells:
+                                    if cell.property.color == self.cells[int(pick)].property.color:
+                                        if self.cells[user.status.location_index].property.level > 1:
+                                            self.cells[user.status.location_index].property.level -= 1
+                                            self.sendcallbacks(f"{user.username} downgraded {cell.property.name} to level {cell.property.level}.")
+                                        else:
+                                            self.sendcallbacks(f"{user.username} tried to downgrade {cell.property.color} but failed since it is level 1.")
+                        else:
+                            raise PropertyNotOwned
                     else:
-                        raise PropertyNotOwned
+                        raise NotProperty
                 else:
-                    raise NotProperty
+                    raise CellIndexError
             else:
                 raise PickError
 
@@ -341,33 +354,38 @@ class Board:
                     raise NotJail
             else:
                 raise AlreadyRolled
+            
         elif command == "teleport":
             if user.status.rolled:
-                if user.status.paidteleport:
-                    if user.status.money >= self.teleport:
+                if int(pick) < len(self.cells):
+                    if user.status.paidteleport:
+                        if user.status.money >= self.teleport:
+                            if self.cells[int(newcell)].type == "property":
+                                user.status.money -= self.teleport
+                                user.status.location_index = int(newcell)
+                                self.sendcallbacks(f"{user.username} teleported to {self.cells[int(newcell)].type}")
+                                user.status.paidteleport = False
+                            else:
+                                raise InvalidTeleport
+                        else:
+                            raise NotEnoughMoney
+                    elif user.status.freeteleport:
                         if self.cells[int(newcell)].type == "property":
-                            user.status.money -= self.teleport
                             user.status.location_index = int(newcell)
                             self.sendcallbacks(f"{user.username} teleported to {self.cells[int(newcell)].type}")
-                            user.status.paidteleport = False
+                            user.status.freeteleport = False
                         else:
                             raise InvalidTeleport
                     else:
-                        raise NotEnoughMoney
-                elif user.status.freeteleport:
-                    if self.cells[int(newcell)].type == "property":
-                        user.status.location_index = int(newcell)
-                        self.sendcallbacks(f"{user.username} teleported to {self.cells[int(newcell)].type}")
-                        user.status.freeteleport = False
-                    else:
-                        raise InvalidTeleport
+                        raise NotTeleport
                 else:
-                    raise NotTeleport
+                    raise CellIndexError
             else:
                 raise NotRolled
+            
         elif command == "end": #Additional
             if user.status.rolled:
-                if not user.status.teleport:
+                if not user.status.freeteleport:
                     if user.status.pick is None:
                         user.status.isplaying = False
                         user.status.rolled = False
@@ -381,11 +399,12 @@ class Board:
                     raise MustTeleport
             else:
                 raise NotRolled
+        
         else:
             raise GameCommandNotFound
         
         if command != "end":
-            self.sendturncb(user, f'Turn continues. Possible commands: {self.getpossiblemoves(user)}')
+            self.sendturncb(user, f"Turn continues. Possible commands: {self.getpossiblemoves(user)}")
 
     def getuserstate(self, user: User) -> str:
         return pprint.pformat(self.users[user.username].getstatus())
@@ -435,15 +454,14 @@ class Board:
 
         return result
     
-    def gameover() -> None:
-        print("GAME OVER") #TODO
+    def gameover(self) -> None:
+        print("GAME OVER. RESULTS:")
+        for user in self.userslist:
+            print("==================================")
+            self.getuserstate(user)
 
     def __repr__(self) -> str:
         for i in self.cells:
             print(i)
         #for i in self.users:
             #print(i) 
-    
-# For testing
-if __name__ == "__main__":
-    board = Board("input.json")
