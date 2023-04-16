@@ -61,6 +61,12 @@ class InvalidTeleport(Exception):
 class CellIndexError(Exception):
     pass
 
+class CellIndexError(Exception):
+    pass
+
+class PropertyOp(Exception):
+    pass
+
 class Board:
 
     def __init__(self, file: str) -> None:
@@ -277,38 +283,47 @@ class Board:
 
         elif command == "buy":
             if user.status.rolled:
-                if self.cells[user.status.location_index].type == "property":
-                    if self.cells[user.status.location_index].property.owner is None:
-                        if user.status.money >= self.cells[user.status.location_index].property.price:
-                            user.status.money -= self.cells[user.status.location_index].property.price
-                            user.status.properties.append(self.cells[user.status.location_index].property)
-                            self.cells[user.status.location_index].property.owner = user.username
-                            self.sendcallbacks(f"{user.username} bought {self.cells[user.status.location_index].property.name}.")
-                            user.status.propertyop = True
+                if not user.status.propertyop:
+                    if self.cells[user.status.location_index].type == "property":
+                        if self.cells[user.status.location_index].property.owner is None:
+                            if user.status.money >= self.cells[user.status.location_index].property.price:
+                                user.status.money -= self.cells[user.status.location_index].property.price
+                                user.status.properties.append(self.cells[user.status.location_index].property)
+                                self.cells[user.status.location_index].property.owner = user.username
+                                self.sendcallbacks(f"{user.username} bought {self.cells[user.status.location_index].property.name}.")
+                                user.status.propertyop = True
+                            else:
+                                raise NotEnoughMoney
                         else:
-                            raise NotEnoughMoney
+                            raise PropertyOwned
                     else:
-                        raise PropertyOwned
+                        raise NotProperty
                 else:
-                    raise NotProperty
+                    raise PropertyOp
             else:
                 raise NotRolled
             
         elif command == "upgrade":
             if user.status.rolled:
-                if self.cells[user.status.location_index].property.owner == user.username:
-                    if self.cells[user.status.location_index].property.level < 5:
-                        if user.status.money >= self.upgrade:
-                            user.status.money -= self.upgrade
-                            self.cells[user.status.location_index].property.level += 1
-                            self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
-                            user.status.propertyop = True
+                if not user.status.propertyop:
+                    if self.cells[user.status.location_index].type == "property":
+                        if self.cells[user.status.location_index].property.owner == user.username:
+                            if self.cells[user.status.location_index].property.level < 5:
+                                if user.status.money >= self.upgrade:
+                                    user.status.money -= self.upgrade
+                                    self.cells[user.status.location_index].property.level += 1
+                                    self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                                    user.status.propertyop = True
+                                else:
+                                    raise NotEnoughMoney
+                            else:
+                                raise PropertyMaxLevel
                         else:
-                            raise NotEnoughMoney
+                            raise PropertyNotOwned
                     else:
-                        raise PropertyMaxLevel
+                        raise NotProperty
                 else:
-                    raise PropertyNotOwned
+                    raise PropertyOp
             else:
                 raise NotRolled
             
@@ -345,6 +360,8 @@ class Board:
                                             self.sendcallbacks(f"{user.username} downgraded {cell.property.name} to level {cell.property.level}.")
                                         else:
                                             self.sendcallbacks(f"{user.username} tried to downgrade {cell.property.color} but failed since it is level 1.")
+                            
+                            user.status.pick = None
                         else:
                             raise PropertyNotOwned
                     else:
@@ -375,7 +392,7 @@ class Board:
             
         elif command == "teleport":
             if user.status.rolled:
-                if int(pick) < len(self.cells):
+                if int(newcell) < len(self.cells):
                     if user.status.paidteleport:
                         if user.status.money >= self.teleport:
                             if self.cells[int(newcell)].type == "property":
@@ -423,7 +440,11 @@ class Board:
             raise GameCommandNotFound
         
         if command != "end":
-            self.sendturncb(user, f"Turn continues. Possible commands: {self.getpossiblemoves(user)}")
+            temp = self.getpossiblemoves(user)
+            if len(temp) == 1 and temp[0] == "end":
+                self.turn(user, "end")
+            else:
+                self.sendturncb(user, f"Turn continues. Possible commands: {temp}")
 
     def getuserstate(self, user: User) -> str:
         return pprint.pformat(self.users[user.username].getstatus())

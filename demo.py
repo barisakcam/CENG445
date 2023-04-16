@@ -178,6 +178,8 @@ class DemoShell(cmd.Cmd):
                             print("ERROR: Teleport is limited to property cells")
                         except board.CellIndexError:
                             print("ERROR: Given cell index is out of range")
+                        except board.PropertyOp:
+                            print("ERROR: Only one property operation can be done in a turn")
                     else:
                         print("ERROR: Not user's turn")
                 else:

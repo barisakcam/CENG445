@@ -25,15 +25,19 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
         self.propertyop = False
 
     def reset(self):
-        self.ready = False
+        self.ready = False #ready olunca Truelanacak
         self.properties.clear()
         self.location_index = None
-        self.money = 0
+        self.money = 0 #oyun başlayınca board.startup olacak
         self.isplaying = False #True when its user's turn
         self.rolled = False #True after roll commands
         self.picked_cell = None
         self.jail = False
         self.jailcards = 0
+        self.paidteleport = False
+        self.freeteleport = False
+        self.pick = None
+        self.propertyop = False
 
     def start_game(self,board):
         self.location_index = 0
