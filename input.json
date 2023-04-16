@@ -31,7 +31,7 @@
       {
         "type": "property",
         "name": "nallihan",
-        "cell": 5,
+        "cell": 6,
         "color": "blue",
         "price": 100,
         "rents": [40, 75, 220, 600, 900]
@@ -42,7 +42,7 @@
       {
         "type": "property",
         "name": "ayas",
-        "cell": 6,
+        "cell": 8,
         "color": "blue",
         "price": 100,
         "rents": [40, 75, 220, 600, 900]
@@ -50,7 +50,7 @@
       {
         "type": "property",
         "name": "bala",
-        "cell": 8,
+        "cell": 9,
         "color": "blue",
         "price": 120,
         "rents": [45, 80, 240, 625, 950]
@@ -61,7 +61,7 @@
       {
         "type": "property",
         "name": "gudul",
-        "cell": 10,
+        "cell": 11,
         "color": "pink",
         "price": 140,
         "rents": [60, 110, 325, 650, 1000]
@@ -72,7 +72,7 @@
       {
         "type": "property",
         "name": "kahramankazan",
-        "cell": 12,
+        "cell": 13,
         "color": "pink",
         "price": 140,
         "rents": [60, 110, 325, 650, 1000]
@@ -81,7 +81,7 @@
 
         "type": "property",
         "name": "kizilcahamam",
-        "cell": 13,
+        "cell": 14,
         "color": "pink",
         "price": 160,
         "rents": [70, 130, 350, 700, 1100]
@@ -92,7 +92,7 @@
       {
         "type": "property",
         "name": "evren",
-        "cell": 15,
+        "cell": 16,
         "color": "orange",
         "price": 180,
         "rents": [80, 150, 375, 800, 1250]
@@ -103,7 +103,7 @@
       {
         "type": "property",
         "name": "sereflikochisar",
-        "cell": 17,
+        "cell": 18,
         "color": "orange",
         "price": 180,
         "rents": [80, 150, 375, 800, 1250]
@@ -111,7 +111,7 @@
       {
         "type": "property",
         "name": "camlidere",
-        "cell": 18,
+        "cell": 19,
         "color": "orange",
         "price": 200,
         "rents": [90, 165, 390, 900, 1325]
@@ -122,7 +122,7 @@
       {
         "type": "property",
         "name": "cubuk",
-        "cell": 20,
+        "cell": 21,
         "color": "red",
         "price": 220,
         "rents": [100, 180, 420, 975, 1400]
@@ -133,7 +133,7 @@
       {
         "type": "property",
         "name": "elmadag",
-        "cell": 22,
+        "cell": 23,
         "color": "red",
         "price": 220,
         "rents": [100, 180, 425, 975, 1400]
@@ -141,7 +141,7 @@
       {
         "type": "property",
         "name": "beypazari",
-        "cell": 23,
+        "cell": 24,
         "color": "red",
         "price": 240,
         "rents": [120, 200, 450, 1000, 1500]
@@ -152,7 +152,7 @@
       {
         "type": "property",
         "name": "cubuk",
-        "cell": 25,
+        "cell": 26,
         "color": "yellow",
         "price": 260,
         "rents": [125, 220, 475, 1050, 1575]
@@ -160,7 +160,7 @@
       {
         "type": "property",
         "name": "elmadag",
-        "cell": 26,
+        "cell": 27,
         "color": "yellow",
         "price": 260,
         "rents": [125, 220, 475, 1050, 1575]
@@ -171,7 +171,7 @@
       {
         "type": "property",
         "name": "beypazari",
-        "cell": 28,
+        "cell": 29,
         "color": "yellow",
         "price": 280,
         "rents": [135, 230, 490, 1080, 1625]
@@ -182,7 +182,7 @@
       {
         "type": "property",
         "name": "golbasi",
-        "cell": 30,
+        "cell": 31,
         "color": "green",
         "price": 300,
         "rents": [150, 250, 520, 1120, 1670]
@@ -190,7 +190,7 @@
       {
         "type": "property",
         "name": "pursaklar",
-        "cell": 31,
+        "cell": 32,
         "color": "green",
         "price": 300,
         "rents": [150, 250, 520, 1120, 1670]
@@ -201,7 +201,7 @@
       {
         "type": "property",
         "name": "altindag",
-        "cell": 33,
+        "cell": 34,
         "color": "green",
         "price": 320,
         "rents": [160, 280, 560, 1200, 1720]
@@ -215,7 +215,7 @@
       {
         "type": "property",
         "name": "yenimahalle",
-        "cell": 36,
+        "cell": 37,
         "color": "navy",
         "price": 350,
         "rents": [175, 350, 600, 1300, 1850]
@@ -226,7 +226,7 @@
       {
         "type": "property",
         "name": "cankaya",
-        "cell": 38,
+        "cell": 39,
         "color": "navy",
         "price": 400,
         "rents": [200, 400, 700, 1400, 2000]
