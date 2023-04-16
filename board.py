@@ -108,7 +108,7 @@ class Board:
             self.gamestarted = True
             self.userslist[0].status.isplaying = True
 
-            self.sendcallbacks(f"Game started. Turn order: {self.userslist}")
+            self.sendcallbacks(f"Game started. Turn order: {self.userslist}.")
             self.sendturncb(self.userslist[0], f"Your turn. Start by rolling.")
 
     def turn(self, user: User, command: str, newcell=None) -> None:
@@ -116,31 +116,33 @@ class Board:
             if not user.status.rolled:
                 dice1 = random.randint(1,6)
                 dice2 = random.randint(1,6)
-                move = dice1+dice2
+                move = dice1 + dice2
+
+                self.sendcallbacks(f"{user.username} tossed {dice1}, {dice2}")
 
                 if user.status.jail:
                     if dice1 == dice2:
-                        print(user.username, "tossed double and bailed")
+                        self.sendcallbacks(f"{user.username} tossed double and released.")
                         user.status.jail = False
                     else:
+                        self.sendcallbacks(f"{user.username} failed to toss double and must wait for the next turn.")
                         user.status.jail = False
                         return #bunu yapmama izin var mı, bir tur beklemesi lazım
-                    
-                else:
-                    print(user.username, "tossed", move)
-
                 
                 user.status.location_index += move
                 user.status.location_index %= len(self.cells)
-                print(f"{user.username} landed on ", self.cells[user.status.location_index].type)
+                self.sendcallbacks(f"{user.username} landed on {user.status.location_index}, which is type {self.cells[user.status.location_index].type}")
+                self.sendturncb(f'Possible moves are: {self.getpossiblemoves(user)}')
 
-                if move>user.status.location_index:
-                    pass #TODO: give salary
+                if move > user.status.location_index:
+                    #TODO: is salary amount specified? 500 temporarily
+                    self.sendcallbacks(f"{user.username} passed start and received {500}")
+                    user.status.money += 500
 
                 user.status.rolled = True
 
                 if self.cells[user.status.location_index].type == "chance card": #other chance cards need pick
-                    print(f"{user.username} drew ", self.chance[self.chance_index])
+                    self.sendcallbacks(f"{user.username} drew {self.chance[self.chance_index]}")
 
                     if self.chance[self.chance_index]["type"] == "goto jail":
                         while not self.cells[user.status.location_index].type == "jail":
@@ -148,12 +150,26 @@ class Board:
                             user.status.location_index %= len(self.cells)
 
                         user.status.jail = True
+
                     elif self.chance[self.chance_index]["type"] == "tax":
-                        user.status.money-=self.tax * len(user.status.properties)
+                        user.status.money -= self.tax * len(user.status.properties)
+
                     elif self.chance[self.chance_index]["type"] == "lottery":
-                        user.status.money+=self.lottery
+                        user.status.money += self.lottery
+
                     elif self.chance[self.chance_index]["type"] == "jail free":
-                        user.status.jailcards +=1
+                        user.status.jailcards += 1
+
+                    elif self.chance[self.chance_index]["type"] == "upgrade":
+                        pass
+                    elif self.chance[self.chance_index]["type"] == "downgrade":
+                        pass
+                    elif self.chance[self.chance_index]["type"] == "color upgrade":
+                        pass
+                    elif self.chance[self.chance_index]["type"] == "color downgrade":
+                        pass
+                    elif self.chance[self.chance_index]["type"] == "teleport":
+                        pass
 
                         
                     self.chance_index = (self.chance_index+1) % len(self.chance)
@@ -164,6 +180,7 @@ class Board:
                         user.status.location_index %= len(self.cells)
 
                     user.status.jail = True
+
                 elif self.cells[user.status.location_index].type == "tax":
                     user.status.money-=self.tax * len(user.status.properties)
                     
@@ -248,6 +265,33 @@ class Board:
 
     def sendturncb(self, user: User, message: str) -> None:
         user.turncb(message)
+
+    def getpossiblemoves(self, user: User) -> list:
+        result = []
+
+        if user.status.rolled:
+            if self.cells[user.status.location_index].type == "jail":
+                result.append("bail")
+
+            if self.cells[user.status.location_index].type == "property":
+                if self.cells[user.status.location_index].property.owner is None:
+                    result.append("buy")
+                if self.cells[user.status.location_index].property.owner == user.username:
+                    result.append("upgrade")
+
+            if self.cells[user.status.location_index].type == "teleport":
+                result.append("teleport")
+
+            if self.cells[user.status.location_index].type == "chance card":
+                pass
+
+        else:
+            result.append("roll")
+
+            if user.status.jail:
+                result.append("bail")
+
+        return result
 
     def __repr__(self) -> str:
         for i in self.cells:

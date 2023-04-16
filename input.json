@@ -43,6 +43,9 @@
       },
       {
         "type": "jail"
+      },
+      {
+        "type": "chance"
       }
     ],
     "upgrade": 50,
