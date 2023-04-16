@@ -161,6 +161,7 @@ class Board:
                     else:
                         self.sendcallbacks(f"{user.username} failed to toss double and must wait for the next turn.")
                         user.status.jail = False
+                        self.sendturncb(user, f"Turn continues. Possible commands: {self.getpossiblemoves(user)}")
                         return
                 
                 user.status.location_index += move
@@ -180,7 +181,7 @@ class Board:
                             user.status.location_index += 1
                             user.status.location_index %= len(self.cells)
 
-                        self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}")
+                        self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jailcards.")
                         user.status.jail = True
 
                     elif self.chance[self.chance_index]["type"] == "tax":
@@ -196,8 +197,8 @@ class Board:
                         user.status.money += self.lottery
 
                     elif self.chance[self.chance_index]["type"] == "jail free":
-                        self.sendcallbacks(f"{user.username} gained a jail free card")
                         user.status.jailcards += 1
+                        self.sendcallbacks(f"{user.username} gained a jail free card. {user.username} has {user.status.jailcards} jailcards.")
 
                     elif self.chance[self.chance_index]["type"] == "upgrade":
                         if len(user.status.properties) == 0:
@@ -233,7 +234,7 @@ class Board:
                         user.status.location_index += 1
                         user.status.location_index %= len(self.cells)
 
-                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}")
+                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jailcards.")
                     user.status.jail = True
 
                 elif self.cells[user.status.location_index].type == "tax":
@@ -245,7 +246,7 @@ class Board:
                         self.gameover()
                     
                 elif self.cells[user.status.location_index].type == "jail":
-                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}")
+                    self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}. {user.username} has {user.status.jailcards} jailcards.")
                     user.status.jail = True
 
                 elif self.cells[user.status.location_index].type == "property":
@@ -354,15 +355,17 @@ class Board:
         elif command == "bail":
             if not user.status.rolled:
                 if self.cells[user.status.location_index].type == "jail":
-                    if user.status.money >= self.jailbail:
-                        user.status.money -= self.cells[user.status.location_index].property.price
-                        user.status.properties.append(self.cells[user.status.location_index].property)
-                        self.cells[user.status.location_index].property.owner = user.username
-
-                        self.sendcallbacks(f"{user.username} bailed for {self.jailbail}")
+                    if user.status.jailcards > 0:
+                        user.status.jailcards -= 1
+                        self.sendcallbacks(f"{user.username} bailed for a jailcard. {user.username} has {user.status.jailcards} jailcards remaining.")
                         user.status.jail = False
                     else:
-                        raise NotEnoughMoney
+                        if user.status.money >= self.jailbail:
+                            user.status.money -= self.jailbail
+                            self.sendcallbacks(f"{user.username} bailed for {self.jailbail}.")
+                            user.status.jail = False
+                        else:
+                            raise NotEnoughMoney
                 else:
                     raise NotJail
             else:
