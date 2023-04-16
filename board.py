@@ -86,9 +86,20 @@ class Board:
         self.lottery = data["lottery"]
 
     def delete(self) -> None:
-        self.cells = []
-        self.users = {}
-        self.chance = []
+        self.users.clear()
+        self.gamestarted = False
+        self.userslist.clear()
+        self.turncounter = 0
+
+        self.cells.clear()
+        self.chance.clear()
+        self.chance_index = 0
+        self.startup = 0
+        self.upgrade = 0
+        self.tax = 0
+        self.jailbail = 0
+        self.teleport = 0
+        self.lottery = 0
 
     def update(self, file: str) -> None:
         self.delete()
@@ -140,6 +151,7 @@ class Board:
                 dice2 = random.randint(1,6)
                 move = dice1 + dice2
 
+                user.status.rolled = True
                 self.sendcallbacks(f"{user.username} tossed {dice1}, {dice2}")
 
                 if user.status.jail:
@@ -159,8 +171,6 @@ class Board:
                     #TODO: is salary amount specified? self.lottery for now
                     self.sendcallbacks(f"{user.username} passed start and received {self.lottery}")
                     user.status.money += self.lottery
-
-                user.status.rolled = True
 
                 if self.cells[user.status.location_index].type == "chance card": #other chance cards need pick
                     self.sendcallbacks(f"{user.username} drew {self.chance[self.chance_index]['type']}")
@@ -427,9 +437,6 @@ class Board:
         result = []
 
         if user.status.rolled:
-            if self.cells[user.status.location_index].type == "jail":
-                result.append("bail")
-
             if self.cells[user.status.location_index].type == "property":
                 if self.cells[user.status.location_index].property.owner is None:
                     result.append("buy")
@@ -462,6 +469,10 @@ class Board:
         for user in self.userslist:
             print("==================================")
             self.getuserstate(user)
+        
+        for user in self.userslist:
+            user.reset()
+        self.delete()
 
     def __repr__(self) -> str:
         for i in self.cells:

@@ -55,6 +55,10 @@ class User:
         self.status = UserStatus()
         self.attachedboard = None
 
+    def reset(self) -> None:
+        self.status.reset()
+        self.attachedboard = None
+
     def get(self) -> str:
         return pprint.pformat({"username": self.username, \
                                "email": self.email, \
