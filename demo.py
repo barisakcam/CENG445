@@ -141,7 +141,7 @@ class DemoShell(cmd.Cmd):
                                     print("ERROR: Missing transport argument")
                                 else:
                                     self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1], newcell=arg_list[2])
-                            if arg_list[1] == "pick":
+                            elif arg_list[1] == "pick":
                                 if len(arg_list) == 2:
                                     print("ERROR: Missing pick argument")
                                 else:
@@ -174,6 +174,8 @@ class DemoShell(cmd.Cmd):
                             print("ERROR: Must pick a property")
                         except board.MustTeleport:
                             print("ERROR: Must teleport")
+                        except board.InvalidTeleport:
+                            print("ERROR: Teleport is limited to property cells")
                     else:
                         print("ERROR: Not user's turn")
                 else:

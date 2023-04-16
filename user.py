@@ -19,7 +19,8 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
         self.picked_cell = None
         self.jail = False
         self.jailcards = 0
-        self.teleport = False
+        self.paidteleport = False
+        self.freeteleport = False
         self.pick = None
 
     def reset(self):
