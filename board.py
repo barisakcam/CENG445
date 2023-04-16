@@ -67,6 +67,7 @@ class CellIndexError(Exception):
 class PropertyOp(Exception):
     pass
 
+# Exceptions are used to check error conditions. They are caught in demo applications and converted to print statements.
 class Board:
 
     def __init__(self, file: str) -> None:
@@ -108,14 +109,33 @@ class Board:
         self.lottery = 0
 
     def update(self, file: str) -> None:
-        self.delete()
-        self.constructor(file)
+        with open(file, "r") as f:
+            data = json.load(f)
 
+        self.gamestarted = False
+        self.userslist = [] # list to determine order of turns, set when game starts, sorted to make sure its deterministic
+        self.turncounter = 0
+
+        self.cells = [Cell(i) for i in data["cells"]]
+        self.chance = data["chances"]
+        self.chance_index = 0
+        self.startup = data["startup"]
+        self.upgrade = data["upgrade"]
+        self.tax = data["tax"]
+        self.jailbail = data["jailbail"]
+        self.teleport = data["teleport"]
+        self.lottery = data["lottery"]
+
+        # User states are reset since a new game starts with a new input file
+        for user in self.users:
+            self.users[user].reset()
+
+    # Since callback and turncb are methods in User class, they are not given to attach seperately
     def attach(self, user: User) -> None:
         if user.username in self.users:
             raise UserExists
         elif self.gamestarted:
-            raise GameAlreadyStarted #TODO: Handle
+            raise GameAlreadyStarted
         else:
             user.attachedboard = self
             self.users[user.username] = user
@@ -418,7 +438,9 @@ class Board:
             else:
                 raise NotRolled
             
-        elif command == "end": #Additional
+        # The end command is an additional command to end the users turn.
+        # It is automatically called if there is no other possible command 
+        elif command == "end":
             if user.status.rolled:
                 if not user.status.freeteleport:
                     if user.status.pick is None:
@@ -442,7 +464,7 @@ class Board:
         if command != "end":
             temp = self.getpossiblemoves(user)
             if len(temp) == 1 and temp[0] == "end":
-                self.turn(user, "end")
+                self.turn(user, "end") # Calling end since it is the only possible command
             else:
                 self.sendturncb(user, f"Turn continues. Possible commands: {temp}")
 
@@ -460,6 +482,7 @@ class Board:
     def sendturncb(self, user: User, message: str) -> None:
         user.turncb(message)
 
+    # Get possible moves to send turncb
     def getpossiblemoves(self, user: User) -> list:
         result = []
 
@@ -492,6 +515,7 @@ class Board:
 
         return result
     
+    # After the game ends, all users are detached
     def gameover(self) -> None:
         print("GAME OVER. RESULTS:")
         for user in self.users:
@@ -502,8 +526,8 @@ class Board:
             self.users[user].reset()
         self.delete()
 
-    def __repr__(self) -> str:
-        for i in self.cells:
-            print(i)
-        #for i in self.users:
-            #print(i) 
+    #def __repr__(self) -> str:
+    #    for i in self.cells:
+    #        print(i)
+    #    #for i in self.users:
+    #        #print(i) 

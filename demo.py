@@ -22,6 +22,32 @@ class DemoShell(cmd.Cmd):
         else:
             print(f"Wrong number of arguments: 4 expected, {len(arg_list)} received")
 
+    def do_update_user(self, args: str):
+        arg_list = args.split()
+
+        if len(arg_list) == 4:
+            if arg_list[0] not in self.users:
+                print("ERROR: User does not exist.")
+            else:
+                self.users[arg_list[0]].update(username=arg_list[0], email=arg_list[1], fullname=arg_list[2], passwd=arg_list[3])
+
+        else:
+            print(f"Wrong number of arguments: 4 expected, {len(arg_list)} received")
+
+    def do_delete_user(self, args: str):
+        arg_list = args.split()
+
+        if len(arg_list) == 1:
+            if arg_list[0] not in self.users:
+                print("ERROR: User does not exist.")
+            else:
+                if self.users[arg_list[0]].attachedboard is not None:
+                    self.users[arg_list[0]].attachedboard.detach(self.users[arg_list[0]])
+                del self.users[arg_list[0]]
+
+        else:
+            print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
+
     def do_ls_user(self, args: str):
         for key in self.users.keys():
             print(key)
@@ -66,9 +92,32 @@ class DemoShell(cmd.Cmd):
         else:
             print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
 
-    def do_ls_board(self, args: str):
-        for key in self.boards.keys():
-            print(key)
+    def do_update_board(self, args: str):
+        arg_list = args.split()
+
+        if len(arg_list) == 2:
+            if arg_list[0] not in self.boards:
+                print("ERROR: Board does not exist")
+            else:
+                try:
+                    self.boards[arg_list[0]].update(arg_list[1])
+                except FileNotFoundError:
+                    print("ERROR: File not found")
+
+        else:
+            print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
+
+    def do_delete_board(self, args: str):
+        arg_list = args.split()
+
+        if len(arg_list) == 1:
+            if arg_list[0] not in self.boards:
+                print("ERROR: Board does not exist")
+            else:
+                del self.boards[arg_list[0]]
+
+        else:
+            print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
     def do_info_board(self, args: str):
         arg_list = args.split()
@@ -80,6 +129,10 @@ class DemoShell(cmd.Cmd):
                 print("ERROR: Board does not exist")
         else:
             print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
+
+    def do_ls_board(self, args: str):
+        for key in self.boards.keys():
+            print(key)
 
     def do_attach_user(self, args: str):
         arg_list = args.split()
@@ -131,6 +184,7 @@ class DemoShell(cmd.Cmd):
         else:
             print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
+    # Game commands provided in format: play $USERNAME $COMMAND ($NEWCELL | $PICK)
     def do_play(self, args: str):
         arg_list = args.split()
 
@@ -156,7 +210,7 @@ class DemoShell(cmd.Cmd):
                             else:
                                 self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1])
                         except board.GameCommandNotFound:
-                            print("ERROR: Game command not found") #TODO: Catch wrong commands
+                            print("ERROR: Game command not found")
                         except board.AlreadyRolled:
                             print("ERROR: User already rolled")
                         except board.NotRolled:
@@ -223,5 +277,5 @@ class DemoShell(cmd.Cmd):
         
 if __name__ == "__main__":
     ds = DemoShell()
-    ds.onecmd("playback test_cmds.txt")
+    #ds.onecmd("playback test_cmds.txt") #Example game
     ds.cmdloop()

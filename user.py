@@ -84,6 +84,7 @@ class User:
         else:
             raise UserNotAttached
     
+    # Used kwargs to allow partial updates
     def update(self, **kwargs) -> None:
         if "username" in kwargs:
             self.username = kwargs["username"]
@@ -98,7 +99,6 @@ class User:
             self.passwd = kwargs["passwd"]
 
     def delete(self) -> None:
-        """PART2 (I GUESS)"""
         pass
 
     def auth(self, plainpass: str) -> bool:
