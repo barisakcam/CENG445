@@ -11,6 +11,7 @@ class DemoShell(cmd.Cmd):
     users = {}
     
     def do_add_user(self, args: str):
+        'adds a user, usage: add_user <username> <email> <fullname> <password>'
         arg_list = args.split()
 
         if len(arg_list) == 4:
@@ -23,6 +24,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 4 expected, {len(arg_list)} received")
 
     def do_update_user(self, args: str):
+        'updates the user, usage: update_user <username> <email> <fullname> <password>'
         arg_list = args.split()
 
         if len(arg_list) == 4:
@@ -35,6 +37,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 4 expected, {len(arg_list)} received")
 
     def do_delete_user(self, args: str):
+        'deletes the user, usage: delete_user <username>'
         arg_list = args.split()
 
         if len(arg_list) == 1:
@@ -49,10 +52,12 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
     def do_ls_user(self, args: str):
+        'lists added users'
         for key in self.users.keys():
             print(key)
 
     def do_info_user(self, args: str):
+        'gives information of the user, usage: info_user <username>'
         arg_list = args.split()
 
         if len(arg_list) == 1:
@@ -64,6 +69,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
     def do_info_user_status(self, args: str):
+        'gives information of the in-game status of the user, usage: info_user_status <username>'
         arg_list = args.split()
 
         if len(arg_list) == 1:
@@ -78,6 +84,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
     def do_add_board(self, args: str):
+        'adds a board to the game, usage: add_board <board_index> <json_file>'
         arg_list = args.split()
 
         if len(arg_list) == 2:
@@ -93,6 +100,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
 
     def do_update_board(self, args: str):
+        'update an already added board, usage: update_board <board_index> <json_file>'
         arg_list = args.split()
 
         if len(arg_list) == 2:
@@ -108,6 +116,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
 
     def do_delete_board(self, args: str):
+        'deletes a board, usage: add_board <board_index>'
         arg_list = args.split()
 
         if len(arg_list) == 1:
@@ -120,6 +129,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
     def do_info_board(self, args: str):
+        'gives information of a board, usage: info_board <board_index>'
         arg_list = args.split()
 
         if len(arg_list) == 1:
@@ -131,10 +141,12 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 1 expected, {len(arg_list)} received")
 
     def do_ls_board(self, args: str):
+        'lists board indices'
         for key in self.boards.keys():
             print(key)
 
     def do_attach_user(self, args: str):
+        'attach the user to a board, usage: attach_user <board_index> <username>'
         arg_list = args.split()
 
         if len(arg_list) == 2:
@@ -154,6 +166,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
 
     def do_detach_user(self, args: str):
+        'detach the user to a board, usage: detach_user <board_index> <username>'
         arg_list = args.split()
 
         if len(arg_list) == 2:
@@ -171,6 +184,7 @@ class DemoShell(cmd.Cmd):
             print(f"Wrong number of arguments: 2 expected, {len(arg_list)} received")
 
     def do_ready(self, args: str):
+        'sets the user ready to play, usage: ready <username>'
         arg_list = args.split()
 
         if len(arg_list) == 1:
@@ -186,6 +200,7 @@ class DemoShell(cmd.Cmd):
 
     # Game commands provided in format: play $USERNAME $COMMAND ($NEWCELL | $PICK)
     def do_play(self, args: str):
+        'general command for in-game commands, usage: play <username> <command> [cell_index]'
         arg_list = args.split()
 
         if len(arg_list) == 2 or len(arg_list) == 3:
@@ -261,6 +276,7 @@ class DemoShell(cmd.Cmd):
             self.cmdqueue.extend(f.read().splitlines())
 
     def do_quit(self, args: str):
+        'terminates the program'
         return True
 
     def default(self, line: str) -> None:
