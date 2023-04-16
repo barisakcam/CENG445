@@ -167,7 +167,7 @@ class Board:
                     else:
                         self.sendcallbacks(f"{user.username} failed to toss double and must wait for the next turn.")
                         user.status.jail = False
-                        self.sendturncb(user, f"Turn continues. Possible commands: {self.getpossiblemoves(user)}")
+                        self.turn(user, "end")
                         return
                 
                 user.status.location_index += move
@@ -351,7 +351,7 @@ class Board:
                                             self.cells[int(pick)].property.level += 1
                                             self.sendcallbacks(f"{user.username} upgraded {cell.property.name} to level {cell.property.level}.")
                                         else:
-                                            self.sendcallbacks(f"{user.username} tried to upgrade {cell.property.color} but failed since it is max level.")
+                                            self.sendcallbacks(f"{user.username} tried to upgrade {cell.property.name} but failed since it is max level.")
                             elif user.status.pick == "color downgrade":
                                 for cell in self.cells:
                                     if cell.type == "property" and cell.property.color == self.cells[int(pick)].property.color:
@@ -359,7 +359,7 @@ class Board:
                                             self.cells[int(pick)].property.level -= 1
                                             self.sendcallbacks(f"{user.username} downgraded {cell.property.name} to level {cell.property.level}.")
                                         else:
-                                            self.sendcallbacks(f"{user.username} tried to downgrade {cell.property.color} but failed since it is level 1.")
+                                            self.sendcallbacks(f"{user.username} tried to downgrade {cell.property.name} but failed since it is level 1.")
                             
                             user.status.pick = None
                         else:
