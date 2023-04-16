@@ -333,30 +333,30 @@ class Board:
                     if self.cells[int(pick)].type == "property":
                         if self.cells[int(pick)].property.owner == user.username:
                             if user.status.pick == "upgrade":
-                                if self.cells[user.status.location_index].property.level < 5:
-                                    self.cells[user.status.location_index].property.level += 1
-                                    self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                                if self.cells[int(pick)].property.level < 5:
+                                    self.cells[int(pick)].property.level += 1
+                                    self.sendcallbacks(f"{user.username} upgraded {self.cells[int(pick)].property.name} to level {self.cells[int(pick)].property.level}.")
                                 else:
-                                    self.sendcallbacks(f"{user.username} tried to upgrade {self.cells[user.status.location_index].property.name} but failed since it is max level.")
+                                    self.sendcallbacks(f"{user.username} tried to upgrade {self.cells[int(pick)].property.name} but failed since it is max level.")
                             elif user.status.pick == "downgrade":
-                                if self.cells[user.status.location_index].property.level > 1:
-                                    self.cells[user.status.location_index].property.level -= 1
-                                    self.sendcallbacks(f"{user.username} downgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                                if self.cells[int(pick)].property.level > 1:
+                                    self.cells[int(pick)].property.level -= 1
+                                    self.sendcallbacks(f"{user.username} downgraded {self.cells[int(pick)].property.name} to level {self.cells[int(pick)].property.level}.")
                                 else:
-                                    self.sendcallbacks(f"{user.username} tried to downgrade {self.cells[user.status.location_index].property.name} but failed since it is level 1.")
+                                    self.sendcallbacks(f"{user.username} tried to downgrade {self.cells[int(pick)].property.name} but failed since it is level 1.")
                             elif user.status.pick == "color upgrade":
                                 for cell in self.cells:
                                     if cell.type == "property" and cell.property.color == self.cells[int(pick)].property.color:
-                                        if self.cells[user.status.location_index].property.level < 5:
-                                            self.cells[user.status.location_index].property.level += 1
+                                        if self.cells[int(pick)].property.level < 5:
+                                            self.cells[int(pick)].property.level += 1
                                             self.sendcallbacks(f"{user.username} upgraded {cell.property.name} to level {cell.property.level}.")
                                         else:
                                             self.sendcallbacks(f"{user.username} tried to upgrade {cell.property.color} but failed since it is max level.")
                             elif user.status.pick == "color downgrade":
                                 for cell in self.cells:
                                     if cell.type == "property" and cell.property.color == self.cells[int(pick)].property.color:
-                                        if self.cells[user.status.location_index].property.level > 1:
-                                            self.cells[user.status.location_index].property.level -= 1
+                                        if self.cells[int(pick)].property.level > 1:
+                                            self.cells[int(pick)].property.level -= 1
                                             self.sendcallbacks(f"{user.username} downgraded {cell.property.name} to level {cell.property.level}.")
                                         else:
                                             self.sendcallbacks(f"{user.username} tried to downgrade {cell.property.color} but failed since it is level 1.")
