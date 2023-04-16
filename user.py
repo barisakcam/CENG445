@@ -7,25 +7,29 @@ class UserNotAttached(Exception):
 class UserStatus: #userın oyundaki değerlerini tutuyor
     
     def __init__(self) -> None:
-       self.constructor()
+        self.constructor()
 
     def constructor(self):
-       self.ready = False #ready olunca Truelanacak
-       self.properties = [] #hiçbir şeyi yok daha
-       self.location_index = None
-       self.money = 0 #oyun başlayınca board.startup olacak
-       self.isplaying = False #True when its user's turn
-       self.rolled = False #True after roll commands
-       self.picked_cell = None
-       self.jail = False
-       self.jailcards = 0
+        self.ready = False #ready olunca Truelanacak
+        self.properties = [] #hiçbir şeyi yok daha
+        self.location_index = None
+        self.money = 0 #oyun başlayınca board.startup olacak
+        self.isplaying = False #True when its user's turn
+        self.rolled = False #True after roll commands
+        self.picked_cell = None
+        self.jail = False
+        self.jailcards = 0
 
-    #Obsolete
     def reset(self):
         self.ready = False
         self.properties.clear()
         self.location_index = None
         self.money = 0
+        self.isplaying = False #True when its user's turn
+        self.rolled = False #True after roll commands
+        self.picked_cell = None
+        self.jail = False
+        self.jailcards = 0
 
     def start_game(self,board):
         self.location_index = 0
@@ -100,11 +104,13 @@ class User:
         """PART2"""
         pass
 
-    def callback(self):
-        pass
+    def callback(self, message: str) -> None:
+        print(f"{self.username} received callback:")
+        print(message)
 
-    def turncb(self):
-        pass
+    def turncb(self, message: str) -> None:
+        print(f"{self.username} received turncb:")
+        print(message)
 
     def __repr__(self):
         return self.username

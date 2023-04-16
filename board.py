@@ -97,17 +97,19 @@ class Board:
         self.users[user.username].status.ready = True
 
         if all([self.users[u].status.ready for u in self.users]):
+            self.userslist = [self.users[usr] for usr in self.users]
+            self.userslist.sort(key=lambda x: x.username)
+
             for usr in self.users:
                 #usr.start_game(self)
                 self.users[usr].status.location_index = 0
                 self.users[usr].status.money = self.startup
-
+            
             self.gamestarted = True
-            self.userslist = [self.users[usr] for usr in self.users]
-            self.userslist.sort(key=lambda x: x.username)
-            print(self.userslist)
-            self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
+            self.userslist[0].status.isplaying = True
 
+            self.sendcallbacks(f"Game started. Turn order: {self.userslist}")
+            self.sendturncb(self.userslist[0], f"Your turn. Start by rolling.")
 
     def turn(self, user: User, command: str, newcell=None) -> None:
         if command == "roll": #TODO: Increase money when start is passed (modulo)
@@ -239,6 +241,13 @@ class Board:
     def getboardstate(self) -> str:
         return pprint.pformat({"cells": [cell.get() for cell in self.cells],
                                "users": [username for username in self.users]}, sort_dicts=False)
+    
+    def sendcallbacks(self, message: str) -> None:
+        for usr in self.users:
+            self.users[usr].callback(message)
+
+    def sendturncb(self, user: User, message: str) -> None:
+        user.turncb(message)
 
     def __repr__(self) -> str:
         for i in self.cells:
