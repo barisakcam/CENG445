@@ -5,10 +5,11 @@ import cmd
 class DemoShell(cmd.Cmd):
     intro = "Online Monopoly Game Platform"
     prompt = "(monopoly) "
+    file = None
 
     boards = {}
     users = {}
-
+    
     def do_add_user(self, args: str):
         arg_list = args.split()
 
@@ -193,6 +194,12 @@ class DemoShell(cmd.Cmd):
 
     #######################################################
 
+    def do_playback(self, arg):
+        'Playback commands from a file:  PLAYBACK rose.cmd'
+        self.close()
+        with open(arg) as f:
+            self.cmdqueue.extend(f.read().splitlines())
+
     def do_quit(self, args: str):
         return True
 
@@ -202,18 +209,12 @@ class DemoShell(cmd.Cmd):
     
     def emptyline(self) -> bool:
         return False
-        
+    
+    def close(self):
+        if self.file:
+            self.file.close()
+            self.file = None
         
 if __name__ == "__main__":
     ds = DemoShell()
-
-    # onecmd's are example, comment them if do not want to run
-    ds.onecmd("add_board 1 input.json")
-    ds.onecmd("add_user kaan kaan@mp kaan_gocmen 12345678")
-    ds.onecmd("add_user baris baris@mp baris_akcam 87654321")
-    ds.onecmd("attach_user 1 kaan")
-    ds.onecmd("attach_user 1 baris")
-    ds.onecmd("info_board 1")
-    ds.onecmd("ready kaan")
-    ds.onecmd("ready baris")
     ds.cmdloop()

@@ -1,5 +1,3 @@
-import pprint
-
 class Cell:
 
     def __init__(self, cell_info) -> None:
