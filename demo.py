@@ -136,11 +136,16 @@ class DemoShell(cmd.Cmd):
                 if self.users[arg_list[0]].attachedboard is not None:
                     if self.users[arg_list[0]].status.isplaying:
                         try:
-                            if arg_list[1] == "teleport" or arg_list == "pick":
+                            if arg_list[1] == "teleport":
                                 if len(arg_list) == 2:
                                     print("ERROR: Missing transport argument")
                                 else:
                                     self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1], newcell=arg_list[2])
+                            if arg_list[1] == "pick":
+                                if len(arg_list) == 2:
+                                    print("ERROR: Missing pick argument")
+                                else:
+                                    self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1], pick=arg_list[2])
                             else:
                                 self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1])
                         except board.GameCommandNotFound:
@@ -153,6 +158,10 @@ class DemoShell(cmd.Cmd):
                             print("ERROR: Not a property")
                         except board.PropertyOwned:
                             print("ERROR: Property is already owned")
+                        except board.PropertyNotOwned:
+                            print("ERROR: Property is not owned by user")
+                        except board.PropertyMaxLevel:
+                            print("ERROR: Property is already level 5")
                         except board.NotEnoughMoney:
                             print("ERROR: Not enough money")
                         except board.NotJail:
@@ -161,6 +170,10 @@ class DemoShell(cmd.Cmd):
                             print("ERROR: Not in teleport")
                         except board.InsufficientArguments:
                             print("ERROR: There are insufficient arguments for the command")
+                        except board.MustPick:
+                            print("ERROR: Must pick a property")
+                        except board.MustTeleport:
+                            print("ERROR: Must teleport")
                     else:
                         print("ERROR: Not user's turn")
                 else:

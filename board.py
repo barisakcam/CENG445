@@ -34,10 +34,22 @@ class NotJail(Exception):
 class PropertyOwned(Exception):
     pass
 
+class PropertyNotOwned(Exception):
+    pass
+
+class PropertyMaxLevel(Exception):
+    pass
+
 class NotEnoughMoney(Exception):
     pass
 
 class InsufficientArguments(Exception):
+    pass
+
+class MustPick(Exception):
+    pass
+
+class MustTeleport(Exception):
     pass
 
 
@@ -109,9 +121,10 @@ class Board:
             self.userslist[0].status.isplaying = True
 
             self.sendcallbacks(f"Game started. Turn order: {self.userslist}.")
-            self.sendturncb(self.userslist[0], f"Your turn. Start by rolling.")
+            self.sendturncb(self.userslist[0], f"Your turn. Possible commands: {self.getpossiblemoves(self.userslist[0])}")
 
-    def turn(self, user: User, command: str, newcell=None) -> None:
+
+    def turn(self, user: User, command: str, newcell=None, pick=None) -> None:
         if command == "roll": #TODO: Increase money when start is passed (modulo)
             if not user.status.rolled:
                 dice1 = random.randint(1,6)
@@ -127,16 +140,16 @@ class Board:
                     else:
                         self.sendcallbacks(f"{user.username} failed to toss double and must wait for the next turn.")
                         user.status.jail = False
-                        return #bunu yapmama izin var mı, bir tur beklemesi lazım
+                        return
                 
                 user.status.location_index += move
                 user.status.location_index %= len(self.cells)
                 self.sendcallbacks(f"{user.username} landed on {user.status.location_index}, which is type {self.cells[user.status.location_index].type}")
 
                 if move > user.status.location_index:
-                    #TODO: is salary amount specified? 500 temporarily
-                    self.sendcallbacks(f"{user.username} passed start and received {500}")
-                    user.status.money += 500
+                    #TODO: is salary amount specified? self.lottery for now
+                    self.sendcallbacks(f"{user.username} passed start and received {self.lottery}")
+                    user.status.money += self.lottery
 
                 user.status.rolled = True
 
@@ -164,21 +177,32 @@ class Board:
                         user.status.jailcards += 1
 
                     elif self.chance[self.chance_index]["type"] == "upgrade":
-                        user.status.pick = True
+                        if len(user.status.properties) == 0:
+                            self.sendcallbacks(f"{user.username} can not upgrade since user does not own a property.")
+                        else:
+                            user.status.pick = True
 
                     elif self.chance[self.chance_index]["type"] == "downgrade":
-                        user.status.pick = True
+                        if len(user.status.properties) == 0:
+                            self.sendcallbacks(f"{user.username} can not downgrade since user does not own a property.")
+                        else:
+                            user.status.pick = True
 
                     elif self.chance[self.chance_index]["type"] == "color upgrade":
-                        user.status.pick = True
+                        if len(user.status.properties) == 0:
+                            self.sendcallbacks(f"{user.username} can not color upgrade since user does not own a property.")
+                        else:
+                            user.status.pick = True
 
                     elif self.chance[self.chance_index]["type"] == "color downgrade":
-                        user.status.pick = True
+                        if len(user.status.properties) == 0:
+                            self.sendcallbacks(f"{user.username} can not color downgrade since user does not own a property.")
+                        else:
+                            user.status.pick = True
 
                     elif self.chance[self.chance_index]["type"] == "teleport":
                         user.status.teleport = True
 
-                        
                     self.chance_index = (self.chance_index+1) % len(self.chance)
 
                 elif self.cells[user.status.location_index].type == "goto jail":
@@ -197,6 +221,22 @@ class Board:
                     self.sendcallbacks(f"{user.username} is jailed in cell {user.status.location_index}")
                     user.status.jail = True
 
+                elif self.cells[user.status.location_index].type == "property":
+                    if user.status.money < self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]:
+                        self.users[self.cells[user.status.location_index].property.owner].money += user.status.money
+                        user.status.money = 0
+
+                        self.sendturncb(user, f'{user.username} could not paid rent and bankrupted.')
+
+                        self.gameover()
+                    else:
+                        self.users[self.cells[user.status.location_index].property.owner].money += self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                        user.status.money -= self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                        self.sendturncb(user, f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.users[self.cells[user.status.location_index].property.owner].username}.')
+
+                elif self.cells[user.status.location_index].type == "teleport":
+                    user.status.teleport = True
+
                 self.sendturncb(user, f'Possible moves are: {self.getpossiblemoves(user)}')
 
             else:
@@ -210,8 +250,7 @@ class Board:
                             user.status.money -= self.cells[user.status.location_index].property.price
                             user.status.properties.append(self.cells[user.status.location_index].property)
                             self.cells[user.status.location_index].property.owner = user.username
-
-                            print(f"{user.username} bought ", self.cells[user.status.location_index].property)
+                            self.sendcallbacks(f"{user.username} bought {self.cells[user.status.location_index].property.name}.")
                         else:
                             raise NotEnoughMoney
                     else:
@@ -221,7 +260,21 @@ class Board:
             else:
                 raise NotRolled
         elif command == "upgrade":
-            pass
+            if user.status.rolled:
+                if self.cells[user.status.location_index].property.owner == user.username:
+                    if self.cells[user.status.location_index].property.level < 5:
+                        if user.status.money >= self.upgrade:
+                            user.status.money -= self.upgrade
+                            self.cells[user.status.location_index].property.level += 1
+                            self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
+                        else:
+                            NotEnoughMoney
+                    else:
+                        PropertyMaxLevel
+                else:
+                    PropertyNotOwned
+            else:
+                raise NotRolled
         elif command == "pick":
             pass
         elif command == "bail":
@@ -242,11 +295,12 @@ class Board:
                 raise AlreadyRolled
         elif command == "teleport":
             if user.status.rolled:
-                if self.cells[user.status.location_index].type == "teleport":
+                if user.status.teleport:
                     if user.status.money >= self.teleport:
                         user.status.money -= self.teleport
                         user.status.location_index = int(newcell)
                         print(f"{user.username} teleported to ", self.cells[int(newcell)].type)
+                        user.status.teleport = False
                     else:
                         raise NotEnoughMoney
                 else:
@@ -255,10 +309,18 @@ class Board:
                 raise NotRolled
         elif command == "end": #Additional
             if user.status.rolled:
-                user.status.isplaying = False
-                user.status.rolled = False
-                self.turncounter += 1
-                self.userslist[self.turncounter % len(self.userslist)].status.isplaying = True
+                if not user.status.teleport:
+                    if not user.status.pick:
+                        user.status.isplaying = False
+                        user.status.rolled = False
+                        self.turncounter += 1
+                        self.turncounter %= len(self.userslist)
+                        self.userslist[self.turncounter].status.isplaying = True
+                        self.sendturncb(self.userslist[self.turncounter], f"Your turn. Possible commands: {self.getpossiblemoves(self.userslist[self.turncounter])}")
+                    else:
+                        MustPick
+                else:
+                    MustTeleport
             else:
                 raise NotRolled
         else:
@@ -310,6 +372,9 @@ class Board:
                 result.append("bail")
 
         return result
+    
+    def gameover() -> None:
+        print("GAME OVER") #TODO
 
     def __repr__(self) -> str:
         for i in self.cells:
