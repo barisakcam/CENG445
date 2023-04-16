@@ -40,11 +40,3 @@ class Property:
                 "rents": self.rents, \
                 "owner": self.owner, \
                 "level": self.level}
-    
-#1. Chance card: Player picks and chance card and follow the card.
-#2. Teleport: Player pays a travel fee and jumps to whichever cell s/he wants. Operation of the cell is followed.
-#3. Jail: Player has to get a double on dice or pay a bailing amount. Otherwise s/he waits for the next round. S/he cannot get rent during this period.
-#4. Goto Jail: Player jumps to the closest jail cell.
-#5. Start: First cell of the board. There is only one start cell and player is payed a lapping salary when s/he passes over this cell.
-#6. Tax: Player pays a fixed amount of tax per property s/he owns. """
-

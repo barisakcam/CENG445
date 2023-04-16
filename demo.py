@@ -142,11 +142,15 @@ class DemoShell(cmd.Cmd):
                             if arg_list[1] == "teleport":
                                 if len(arg_list) == 2:
                                     print("ERROR: Missing transport argument")
+                                if not arg_list[2].isdigit():
+                                    print("ERROR: Transport argument must be an integer index")
                                 else:
                                     self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1], newcell=arg_list[2])
                             elif arg_list[1] == "pick":
                                 if len(arg_list) == 2:
                                     print("ERROR: Missing pick argument")
+                                if not arg_list[2].isdigit():
+                                    print("ERROR: Pick argument must be an integer index")
                                 else:
                                     self.users[arg_list[0]].attachedboard.turn(self.users[arg_list[0]], arg_list[1], pick=arg_list[2])
                             else:
