@@ -222,17 +222,18 @@ class Board:
                     user.status.jail = True
 
                 elif self.cells[user.status.location_index].type == "property":
-                    if user.status.money < self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]:
-                        self.users[self.cells[user.status.location_index].property.owner].money += user.status.money
-                        user.status.money = 0
+                    if self.cells[user.status.location_index].property.owner is not None:
+                        if user.status.money < self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]:
+                            self.users[self.cells[user.status.location_index].property.owner].money += user.status.money
+                            user.status.money = 0
 
-                        self.sendturncb(user, f'{user.username} could not paid rent and bankrupted.')
+                            self.sendturncb(user, f'{user.username} could not paid rent and bankrupted.')
 
-                        self.gameover()
-                    else:
-                        self.users[self.cells[user.status.location_index].property.owner].money += self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
-                        user.status.money -= self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
-                        self.sendturncb(user, f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.users[self.cells[user.status.location_index].property.owner].username}.')
+                            self.gameover()
+                        else:
+                            self.users[self.cells[user.status.location_index].property.owner].money += self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                            user.status.money -= self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                            self.sendturncb(user, f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.users[self.cells[user.status.location_index].property.owner].username}.')
 
                 elif self.cells[user.status.location_index].type == "teleport":
                     user.status.teleport = True
