@@ -1,0 +1,84 @@
+{
+    "cells": [
+      {
+        "type": "start"
+      },
+      {
+        "type": "goto jail"
+      },
+      {
+        "type": "property",
+        "name": "cankaya",
+        "cell": 2,
+        "color": "navy",
+        "price": 400,
+        "rents": [200, 400, 700, 1400, 2000]
+      },
+      {
+        "type": "property",
+        "name": "yenimahalle",
+        "cell": 3,
+        "color": "navy",
+        "price": 400,
+        "rents": [200, 400, 700, 1400, 2000]
+      },
+      {
+        "type": "chance card"
+      },
+      {
+        "type": "property",
+        "name": "mamak",
+        "cell": 5,
+        "color": "red",
+        "price": 400,
+        "rents": [200, 400, 700, 1400, 2000]
+      },
+      {
+        "type": "property",
+        "name": "kecioren",
+        "cell": 6,
+        "color": "red",
+        "price": 400,
+        "rents": [200, 400, 700, 1400, 2000]
+      },
+      {
+        "type": "jail"
+      },
+      {
+        "type": "chance card"
+      },
+      {
+        "type": "jail"
+      },
+      {
+        "type": "chance card"
+      },
+      {
+        "type": "chance card"
+      }
+    ],
+    "upgrade": 50,
+    "teleport": 100,
+    "jailbail": 100,
+    "tax": 30,
+    "lottery": 200,
+    "startup": 1500,
+    "chances": [
+      {
+        "type": "color upgrade"
+      },
+      {
+        "type": "color downgrade"
+      },
+      {
+        "type": "upgrade"
+      },
+      {
+        "type": "downgrade"
+      },      
+      {
+        "type": "jail free"
+      }
+
+    ]
+  }
