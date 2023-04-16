@@ -52,6 +52,9 @@ class MustPick(Exception):
 class MustTeleport(Exception):
     pass
 
+class PickError(Exception):
+    pass
+
 
 class Board:
 
@@ -180,25 +183,25 @@ class Board:
                         if len(user.status.properties) == 0:
                             self.sendcallbacks(f"{user.username} can not upgrade since user does not own a property.")
                         else:
-                            user.status.pick = True
+                            user.status.pick = "upgrade"
 
                     elif self.chance[self.chance_index]["type"] == "downgrade":
                         if len(user.status.properties) == 0:
                             self.sendcallbacks(f"{user.username} can not downgrade since user does not own a property.")
                         else:
-                            user.status.pick = True
+                            user.status.pick = "downgrade"
 
                     elif self.chance[self.chance_index]["type"] == "color upgrade":
                         if len(user.status.properties) == 0:
                             self.sendcallbacks(f"{user.username} can not color upgrade since user does not own a property.")
                         else:
-                            user.status.pick = True
+                            user.status.pick = "color upgrade"
 
                     elif self.chance[self.chance_index]["type"] == "color downgrade":
                         if len(user.status.properties) == 0:
                             self.sendcallbacks(f"{user.username} can not color downgrade since user does not own a property.")
                         else:
-                            user.status.pick = True
+                            user.status.pick = "color downgrade"
 
                     elif self.chance[self.chance_index]["type"] == "teleport":
                         user.status.teleport = True
@@ -238,7 +241,9 @@ class Board:
                 elif self.cells[user.status.location_index].type == "teleport":
                     user.status.teleport = True
 
-                self.sendturncb(user, f'Possible moves are: {self.getpossiblemoves(user)}')
+                elif self.cells[user.status.location_index].type == "lottery":
+                    self.sendcallbacks(f"{user.username} won {self.lottery} lottery")
+                    user.status.money += self.lottery
 
             else:
                 raise AlreadyRolled
@@ -269,15 +274,33 @@ class Board:
                             self.cells[user.status.location_index].property.level += 1
                             self.sendcallbacks(f"{user.username} upgraded {self.cells[user.status.location_index].property.name} to level {self.cells[user.status.location_index].property.level}.")
                         else:
-                            NotEnoughMoney
+                            raise NotEnoughMoney
                     else:
-                        PropertyMaxLevel
+                        raise PropertyMaxLevel
                 else:
-                    PropertyNotOwned
+                    raise PropertyNotOwned
             else:
                 raise NotRolled
+            
         elif command == "pick":
-            pass
+            if user.status.pick is not None:
+                if self.cells[int(pick)].type == "property":
+                    if self.cells[int(pick)].property.owner == user.username:
+                        if user.status.pick == "upgrade":
+                            pass
+                        elif user.status.pick == "downgrade":
+                            pass
+                        elif user.status.pick == "color upgrade":
+                            pass
+                        elif user.status.pick == "color downgrade":
+                            pass
+                    else:
+                        raise PropertyNotOwned
+                else:
+                    raise NotProperty
+            else:
+                raise PickError
+
         elif command == "bail":
             if not user.status.rolled:
                 if self.cells[user.status.location_index].type == "jail":
@@ -286,7 +309,7 @@ class Board:
                         user.status.properties.append(self.cells[user.status.location_index].property)
                         self.cells[user.status.location_index].property.owner = user.username
 
-                        print(f"{user.username} bailed")
+                        self.sendcallbacks(f"{user.username} bailed for {self.jailbail}")
                         user.status.jail = False
                     else:
                         raise NotEnoughMoney
@@ -300,7 +323,7 @@ class Board:
                     if user.status.money >= self.teleport:
                         user.status.money -= self.teleport
                         user.status.location_index = int(newcell)
-                        print(f"{user.username} teleported to ", self.cells[int(newcell)].type)
+                        self.sendcallbacks(f"{user.username} teleported to {self.cells[int(newcell)].type}")
                         user.status.teleport = False
                     else:
                         raise NotEnoughMoney
@@ -311,7 +334,7 @@ class Board:
         elif command == "end": #Additional
             if user.status.rolled:
                 if not user.status.teleport:
-                    if not user.status.pick:
+                    if user.status.pick is None:
                         user.status.isplaying = False
                         user.status.rolled = False
                         self.turncounter += 1
@@ -319,13 +342,15 @@ class Board:
                         self.userslist[self.turncounter].status.isplaying = True
                         self.sendturncb(self.userslist[self.turncounter], f"Your turn. Possible commands: {self.getpossiblemoves(self.userslist[self.turncounter])}")
                     else:
-                        MustPick
+                        raise MustPick
                 else:
-                    MustTeleport
+                    raise MustTeleport
             else:
                 raise NotRolled
         else:
             raise GameCommandNotFound
+        
+        self.sendturncb(user, f'Possible moves are: {self.getpossiblemoves(user)}')
 
     def getuserstate(self, user: User) -> str:
         return pprint.pformat(self.users[user.username].getstatus())

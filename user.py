@@ -21,6 +21,7 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
         self.jailcards = 0
         self.teleport = False
         self.pick = False
+        self.picktype = None 
 
     def reset(self):
         self.ready = False
