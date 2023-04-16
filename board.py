@@ -151,7 +151,7 @@ class Board:
 
 
     def turn(self, user: User, command: str, newcell=None, pick=None) -> None:
-        if command == "roll": #TODO: Increase money when start is passed (modulo)
+        if command == "roll":
             if not user.status.rolled:
                 dice1 = random.randint(1,6)
                 dice2 = random.randint(1,6)

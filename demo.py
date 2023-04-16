@@ -90,6 +90,8 @@ class DemoShell(cmd.Cmd):
                         self.boards[arg_list[0]].attach(self.users[arg_list[1]])
                     except board.UserExists:
                         print("ERROR: User already attached")
+                    except board.GameAlreadyStarted:
+                        print("ERROR: Game is already started")
                 else:
                     print("ERROR: User does not exist")
             else:
