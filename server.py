@@ -5,6 +5,7 @@ import sys
 import argparse
 import board
 import user
+import auth
 
 def parsecommand(line: str):         # parse client input provided for convenience
     arglist = line.rstrip('\n').split(' ')
@@ -65,12 +66,18 @@ class Agent(Thread):
             Thread.__init__(self)
 
         def run(self):
+            self.username = "NOT LOGGED IN USER"
             request = self.sock.recv(1024)
             while request != b'':
-                print(parsecommand(request.decode()))
+                comms = parsecommand(request.decode())
+                print(self.username, "commanded", comms)
 
-                if request[0]:
-                    pass
+                if comms[0] == "login":
+                    self.sock.send("Username: ".encode())
+                    self.username = self.sock.recv(1024).decode()
+                    self.username = self.username[:-1] #\n gelmesin diye
+                    self.sock.send("Password: ".encode())
+                    self.password = auth.hash(self.sock.recv(1024).decode())
 
                 request = self.sock.recv(1024)
 
@@ -80,12 +87,7 @@ class Agent(Thread):
             Thread.__init__(self)
 
         def run(self):
-            while True:
-                pass
-            request = self.sock.recv(1024)
-            while request != b'':
-                print("Callback: ", request)
-                request = self.sock.recv(1024)
+            return
 
     def __init__(self, sock: socket):
         self.socket = sock
