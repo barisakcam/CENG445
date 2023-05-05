@@ -106,7 +106,7 @@ class Agent(Thread):
                                 self.sock.send(f"ERROR: Wrong password.\n".encode())
 
                     # new user <username> <password> <mail> <fullname>
-                    if cmds[0] == "new":
+                    elif cmds[0] == "new":
                         if len(cmds) > 1 and cmds[1] == "board":
                             self.sock.send(f"ERROR: Log in to use new board command. You can use new user now.\n".encode())
                         elif len(cmds) > 1 and cmds[1] == "user":
@@ -122,6 +122,9 @@ class Agent(Thread):
                                     self.sock.send(f"INFO: User created.\n".encode())
                                 else:
                                     self.sock.send(f"ERROR: User already exists.\n".encode())
+                    
+                    else:
+                        self.sock.send(f"ERROR: Command not found.\n".encode())
 
                 else:
 
@@ -132,6 +135,29 @@ class Agent(Thread):
                         else:
                             self.username = None
                             self.sock.send(f"INFO: Logged out.\n".encode())
+
+                    # new board <boardname> <file>
+                    elif cmds[0] == "new":
+                        if len(cmds) > 1 and cmds[1] == "user":
+                            self.sock.send(f"ERROR: Log out to use new user command. You can use new board now.\n".encode())
+                        elif len(cmds) > 1 and cmds[1] == "board":
+                            if len(cmds) != 3:
+                                self.sock.send(f"ERROR: new user expects 1 arguments. Received: {len(cmds) - 2}\n".encode())
+                            else:
+                                boards.new(cmds[2])
+                                self.sock.send(f"INFO: Board created.\n".encode())
+
+                    elif cmds[0] == "list":
+                        if len(cmds) != 2:
+                            self.sock.send(f"ERROR: list expects 1 arguments. Received: {len(cmds) - 1} \n".encode())
+                        else:
+                            if cmds[1] == "user":
+                                print("\n".join(users.list()))
+                            elif cmds[1] == "board":
+                                print("\n".join(boards.list()))
+
+                    else:
+                        self.sock.send(f"ERROR: Command not found.\n".encode())
 
 
                 request = self.sock.recv(1024)
