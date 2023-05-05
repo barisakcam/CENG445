@@ -6,6 +6,8 @@ import argparse
 import board
 import user
 import auth
+import sqlite3
+
 
 def parsecommand(line: str):         # parse client input provided for convenience
     arglist = line.rstrip('\n').split(' ')
@@ -62,6 +64,7 @@ class BoardDict:
 class Agent(Thread):
     class RequestHandler(Thread):
         def __init__(self, sock: socket):
+            self.logged_in = False
             self.sock = sock
             Thread.__init__(self)
 
@@ -72,12 +75,26 @@ class Agent(Thread):
                 comms = parsecommand(request.decode())
                 print(self.username, "commanded", comms)
 
-                if comms[0] == "login":
+                if comms[0] == "login" and not self.logged_in:
                     self.sock.send("Username: ".encode())
                     self.username = self.sock.recv(1024).decode()
                     self.username = self.username[:-1] #\n gelmesin diye
                     self.sock.send("Password: ".encode())
-                    self.password = auth.hash(self.sock.recv(1024).decode())
+                    self.password = self.sock.recv(1024).decode()[:-1]
+
+                    self.password = auth.hash(self.password)
+                    #hashsiz çalışıyor hashli çalışmıyor
+                    conn= sqlite3.connect("userdata.db")
+                    cur = conn.cursor()
+                    cur.execute("SELECT * FROM userdata")
+                    print(cur.fetchall())
+                    cur.execute("SELECT * FROM userdata WHERE username = ? AND password = ?", (self.username, self.password))
+                    if cur.fetchall():
+                        self.sock.send(f"Welcome {self.username}\n".encode())
+                        self.logged_in = True
+                    else:
+                        self.sock.send("Login failed\n".encode())
+                        self.username = "NOT LOGGED IN USER"
 
                 request = self.sock.recv(1024)
 
