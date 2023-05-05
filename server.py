@@ -9,7 +9,7 @@ import auth
 import sqlite3
 
 
-def parsecommand(line: str):         # parse client input provided for convenience
+def parsecommand(line: str):
     arglist = line.rstrip('\n').split(' ')
     return arglist
 
@@ -18,10 +18,10 @@ class UserDict:
         self.mutex = RLock()
         self.data: dict[str, user.User] = {}
 
-    def new(self, username, email, fullname, password):
+    def new(self, username, email, fullname):
         self.mutex.acquire()
         if username not in self.data:
-            self.data[username] = user.User(username, email, fullname, password)
+            self.data[username] = user.User(username, email, fullname)
         else:
             pass
         self.mutex.release()
@@ -29,6 +29,15 @@ class UserDict:
     def list(self):
         self.mutex.acquire()
         res = [name for name in self.data]
+        self.mutex.release()
+        return res
+    
+    def isattached(self, username):
+        self.mutex.acquire()
+        if self.data[username].attachedboard is None:
+            res = False
+        else:
+            res = True
         self.mutex.release()
         return res
 
@@ -64,35 +73,66 @@ class BoardDict:
 class Agent(Thread):
     class RequestHandler(Thread):
         def __init__(self, sock: socket):
-            self.logged_in = False
+            self.username = None
             self.sock = sock
             Thread.__init__(self)
 
         def run(self):
-            self.username = "NOT LOGGED IN USER"
+            self.connection = sqlite3.connect("userdata.db")
+            self.cursor = self.connection.cursor()
+
             request = self.sock.recv(1024)
             while request != b'':
-                comms = parsecommand(request.decode())
-                print(self.username, "commanded", comms)
+                cmds = parsecommand(request.decode())
+                print(self.username, "commanded", cmds)
 
-                if comms[0] == "login" and not self.logged_in:
-                    self.sock.send("Username: ".encode())
-                    self.username = self.sock.recv(1024).decode()
-                    self.username = self.username[:-1] #\n gelmesin diye
-                    self.sock.send("Password: ".encode())
-                    self.password = self.sock.recv(1024).decode()[:-1]
+                if self.username is None:
 
-                    #hashsiz çalışıyor hashli çalışmıyor
-                    conn= sqlite3.connect("userdata.db")
-                    cur = conn.cursor()
-                    cur.execute("SELECT password FROM userdata WHERE username = ?", (self.username,))
-                    result = cur.fetchone()
-                    if result is not None and auth.match(result[0],self.password):
-                        self.sock.send(f"Welcome {self.username}\n".encode())
-                        self.logged_in = True
-                    else:
-                        self.sock.send("Login failed\n".encode())
-                        self.username = "NOT LOGGED IN USER"
+                    # login <username> <password>
+                    if cmds[0] == "login":
+                        if len(cmds) != 3:
+                            self.sock.send(f"ERROR: login expects 2 arguments. Received: {len(cmds) - 1}\n".encode())
+                        else:
+                            self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
+                            result = self.cursor.fetchone()
+
+                            if result is None:
+                                self.sock.send(f"ERROR: User {cmds[1]} not found.\n".encode())
+                            elif auth.match(result[2], cmds[2]):
+                                self.username = cmds[1]
+                                users.new(self.username, result[3], result[4])
+                                self.sock.send(f"INFO: Logged in.\n".encode())
+                            else:
+                                self.sock.send(f"ERROR: Wrong password.\n".encode())
+
+                    # new user <username> <password> <mail> <fullname>
+                    if cmds[0] == "new":
+                        if len(cmds) > 1 and cmds[1] == "board":
+                            self.sock.send(f"ERROR: Log in to use new board command. You can use new user now.\n".encode())
+                        elif len(cmds) > 1 and cmds[1] == "user":
+                            if len(cmds) != 6:
+                                self.sock.send(f"ERROR: new user expects 4 arguments. Received: {len(cmds) - 2}\n".encode())
+                            elif cmds[1] == "user":
+                                self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[2],))
+                                result = self.cursor.fetchone()
+
+                                if result is None:
+                                    self.cursor.execute("INSERT INTO userdata (username, password, email, fullname) VALUES (? , ?, ?, ?)", (cmds[2], auth.hash(cmds[3]), cmds[4], cmds[5]))
+                                    self.connection.commit()
+                                    self.sock.send(f"INFO: User created.\n".encode())
+                                else:
+                                    self.sock.send(f"ERROR: User already exists.\n".encode())
+
+                else:
+
+                    # logout
+                    if cmds[0] == "logout":
+                        if users.isattached(self.username):
+                            self.sock.send(f"ERROR: Detach from the board to logout.\n".encode())
+                        else:
+                            self.username = None
+                            self.sock.send(f"INFO: Logged out.\n".encode())
+
 
                 request = self.sock.recv(1024)
 
@@ -116,6 +156,9 @@ class Agent(Thread):
         self.rh.join()
         self.ch.join()
 
+boards = BoardDict()
+users = UserDict()
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', type=int, default=1234, action='store')
 args = parser.parse_args()
@@ -125,8 +168,6 @@ s.bind(('', args.port))
 
 s.listen(10)
 av = s.accept()
-boards = BoardDict()
-users = UserDict()
 
 try:
     while av:

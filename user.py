@@ -45,17 +45,16 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
     
 class User:
 
-    def __init__(self, username: str, email: str, fullname: str, passwd: str) -> None:
-        self.constructor(username, email, fullname, passwd)
+    def __init__(self, username: str, email: str, fullname: str) -> None:
+        self.constructor(username, email, fullname)
 
     def __del__(self) -> None:
         self.delete()
         
-    def constructor(self, username: str, email: str, fullname: str, passwd: str) -> None:
+    def constructor(self, username: str, email: str, fullname: str) -> None:
         self.username = username
         self.email = email
         self.fullname = fullname
-        self.passwd = auth.hash(passwd)
         ##############################
         self.status = UserStatus()
         self.attachedboard = None
@@ -67,8 +66,7 @@ class User:
     def get(self) -> str:
         return pprint.pformat({"username": self.username, \
                                "email": self.email, \
-                               "fullname": self.fullname, \
-                               "passwd": self.passwd})
+                               "fullname": self.fullname})
     
     def getstatus(self) -> dict:
         return {"username": self.username, \
