@@ -82,14 +82,12 @@ class Agent(Thread):
                     self.sock.send("Password: ".encode())
                     self.password = self.sock.recv(1024).decode()[:-1]
 
-                    self.password = auth.hash(self.password)
                     #hashsiz çalışıyor hashli çalışmıyor
                     conn= sqlite3.connect("userdata.db")
                     cur = conn.cursor()
-                    cur.execute("SELECT * FROM userdata")
-                    print(cur.fetchall())
-                    cur.execute("SELECT * FROM userdata WHERE username = ? AND password = ?", (self.username, self.password))
-                    if cur.fetchall():
+                    cur.execute("SELECT password FROM userdata WHERE username = ?", (self.username,))
+                    result = cur.fetchone()
+                    if result is not None and auth.match(result[0],self.password):
                         self.sock.send(f"Welcome {self.username}\n".encode())
                         self.logged_in = True
                     else:
