@@ -143,6 +143,8 @@ class Board:
     def detach(self, user: User) -> None:
         if user.username in self.users:
             user.attachedboard = None
+            user.status.ready = False
+
             del self.users[user.username]
 
             if self.gamestarted:

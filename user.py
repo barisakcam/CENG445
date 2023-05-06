@@ -1,6 +1,8 @@
 import auth
 import pprint
 import board
+import queue
+import threading
 
 class UserNotAttached(Exception):
     pass
@@ -60,6 +62,10 @@ class User:
         self.status = UserStatus()
         self.attachedboard: board.Board = None
 
+        self.callbackqueue = queue.Queue()
+        self.cvlock = threading.Lock()
+        self.cv = threading.Condition(self.cvlock)
+
     def reset(self) -> None:
         self.status.reset()
         self.attachedboard = None
@@ -116,6 +122,9 @@ class User:
         pass
 
     def callback(self, message: str) -> None:
+        self.callbackqueue.put(message)
+        with self.cv:
+            self.cv.notify_all()
         print(f"{self.username} received callback:")
         print(message)
 

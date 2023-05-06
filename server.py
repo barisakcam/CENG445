@@ -1,11 +1,17 @@
 from socket import *
-from threading import Thread, RLock
+from threading import Thread, RLock, Condition
 import argparse
 import board
 import user
 import auth
 import sqlite3
 import pprint
+
+class UserAlreadyReady(Exception):
+    pass
+
+class UserNotAttached(Exception):
+    pass
 
 def parsecommand(line: str):
     arglist = line.rstrip('\n').split(' ')
@@ -29,6 +35,7 @@ class UserDict:
         with mutex:
             if username in self.data:
                 del self.data[username]
+                return True
             else:
                 return False # Dont remember why I put this
 
@@ -51,6 +58,10 @@ class UserDict:
                 return True
             else:
                 return False
+            
+    def getmessage(self, username):
+        with mutex:
+            return users[username].callbackqueue.get()
 
 class BoardDict:
     def __init__(self) -> None:
@@ -90,13 +101,29 @@ class BoardDict:
     def ready(self, username):
         with mutex:
             if users[username].attachedboard is None:
-                return False
+                raise UserNotAttached
+            elif users[username].status.ready:
+                raise UserAlreadyReady
             else:
                 users[username].attachedboard.ready(users[username])
-                return True
 
 class Agent(Thread):
     class RequestHandler(Thread):
+        class CallbackHandler(Thread):
+            def __init__(self, sock: socket, username: str):
+                self.sock = sock
+                self.username = username
+                Thread.__init__(self)
+
+            def run(self):
+                while True:
+                    with users[self.username].cv:
+                        if users[self.username].cv.wait(timeout=0.5):
+                            with mutex:
+                                self.sock.send(f"CALLBACK: {users.getmessage(self.username)}".encode())
+                        else:
+                            print("is exit?")
+
         def __init__(self, sock: socket):
             self.username = None
             self.sock = sock
@@ -117,7 +144,9 @@ class Agent(Thread):
                     if self.username is not None and users.isattached(self.username):
                         boards.close(self.username)
 
-                    users.logout(self.username)
+                    if users.logout(self.username):
+                        self.ch.join()
+
                     self.username = None
 
                 if self.username is None:
@@ -137,6 +166,8 @@ class Agent(Thread):
                             elif auth.match(result[2], cmds[2]):
                                 self.username = cmds[1]
                                 users.login(self.username, result[3], result[4])
+                                self.ch = self.CallbackHandler(self.sock, self.username)
+                                self.ch.start()
                                 self.sock.send(f"INFO: Logged in.".encode())
                             else:
                                 self.sock.send(f"ERROR: Wrong password.".encode())
@@ -167,7 +198,9 @@ class Agent(Thread):
                             boards.close(self.username)
                             self.sock.send(f"INFO: Closed board.".encode())
 
-                        users.logout(self.username)
+                        if users.logout(self.username): # First join then logout / join may be unnecessary
+                            self.ch.join()
+
                         self.username = None
                         self.sock.send(f"INFO: Logged out.".encode())
 
@@ -216,35 +249,29 @@ class Agent(Thread):
                         if len(cmds) != 1:
                             self.sock.send(f"ERROR: ready expects no arguments. Received: {len(cmds) - 1} ".encode())
                         else:
-                            if boards.ready(self.username):
+                            try:
+                                boards.ready(self.username)
                                 self.sock.send(f"INFO: Ready".encode())
-                            else:
+                            except UserNotAttached:
                                 self.sock.send(f"ERROR: No board is open.".encode())
+                            except UserAlreadyReady:
+                                self.sock.send(f"ERROR: Already ready.".encode())
 
                     else:
                         self.sock.send(f"ERROR: Command not found.".encode())      
 
                 request = self.sock.recv(1024)
 
-    class CallbackHandler(Thread):
-        def __init__(self, sock: socket):
-            self.sock = sock
-            Thread.__init__(self)
-
-        def run(self):
-            return
+            print("Agent shutdown.") # For DEBUG
 
     def __init__(self, sock: socket):
         self.socket = sock
         self.rh = self.RequestHandler(sock)
-        self.ch = self.CallbackHandler(sock)
         Thread.__init__(self)
 
     def run(self):
         self.rh.start()
-        self.ch.start()
         self.rh.join()
-        self.ch.join()
 
 mutex = RLock()
 boards = BoardDict()
