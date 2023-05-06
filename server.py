@@ -15,7 +15,7 @@ class UserDict:
     def __init__(self) -> None:
         self.data: dict[str, user.User] = {}
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> user.User:
         return self.data[index]
     
     def login(self, username, email, fullname):
@@ -30,7 +30,7 @@ class UserDict:
             if username in self.data:
                 del self.data[username]
             else:
-                return False
+                return False # Dont remember why I put this
 
     def list(self):
         with mutex:
@@ -73,11 +73,27 @@ class BoardDict:
     
     def open(self, name, username):
         with mutex:
-            self.data[name].attach(users[username])
+            if name in self.data:
+                self.data[name].attach(users[username])
+                return True
+            else:
+                return False
 
     def close(self, username):
         with mutex:
-            users[username].attachedboard.detach(users[username])
+            if users[username].attachedboard is None:
+                return False
+            else:
+                users[username].attachedboard.detach(users[username])
+                return True
+
+    def ready(self, username):
+        with mutex:
+            if users[username].attachedboard is None:
+                return False
+            else:
+                users[username].attachedboard.ready(users[username])
+                return True
 
 class Agent(Thread):
     class RequestHandler(Thread):
@@ -94,6 +110,15 @@ class Agent(Thread):
             while request != b'':
                 cmds = parsecommand(request.decode())
                 print(self.username, "commanded", cmds)
+
+                # quit command is sent when a client terminates connection
+                # It is used to logout the quiting user to make sure server state remains clean
+                if cmds[0] == "quit":
+                    if self.username is not None and users.isattached(self.username):
+                        boards.close(self.username)
+
+                    users.logout(self.username)
+                    self.username = None
 
                 if self.username is None:
 
@@ -139,10 +164,12 @@ class Agent(Thread):
                     # logout
                     if cmds[0] == "logout":
                         if users.isattached(self.username):
-                            self.sock.send(f"ERROR: Detach from the board to logout.".encode())
-                        else:
-                            self.username = None
-                            self.sock.send(f"INFO: Logged out.".encode())
+                            boards.close(self.username)
+                            self.sock.send(f"INFO: Closed board.".encode())
+
+                        users.logout(self.username)
+                        self.username = None
+                        self.sock.send(f"INFO: Logged out.".encode())
 
                     # new <boardname> <file>?NOTADDED
                     elif cmds[0] == "new":
@@ -167,21 +194,35 @@ class Agent(Thread):
                         else:
                             if users.isattached(self.username):
                                 boards.close(self.username)
-                            
-                            boards.open(cmds[1], self.username)
-                            self.sock.send(f"INFO: Opened board {cmds[1]}".encode())
+                                self.sock.send(f"INFO: Closed board.".encode())
+
+                            if boards.open(cmds[1], self.username):
+                                self.sock.send(f"INFO: Opened board {cmds[1]}.".encode())
+                            else:
+                                self.sock.send(f"ERROR: Board not found.".encode())
 
                     # close
                     elif cmds[0] == "close":
                         if len(cmds) != 1:
                             self.sock.send(f"ERROR: open expects no arguments. Received: {len(cmds) - 1} ".encode())
                         else:
-                            boards.close(self.username)
-                            self.sock.send(f"INFO: Opened board {cmds[1]}".encode())
+                            if boards.close(self.username):
+                                self.sock.send(f"INFO: Closed board.".encode())
+                            else:
+                                self.sock.send(f"ERROR: No board is open.".encode())
+
+                    # ready
+                    elif cmds[0] == "ready":
+                        if len(cmds) != 1:
+                            self.sock.send(f"ERROR: ready expects no arguments. Received: {len(cmds) - 1} ".encode())
+                        else:
+                            if boards.ready(self.username):
+                                self.sock.send(f"INFO: Ready".encode())
+                            else:
+                                self.sock.send(f"ERROR: No board is open.".encode())
 
                     else:
-                        self.sock.send(f"ERROR: Command not found.".encode())
-                    
+                        self.sock.send(f"ERROR: Command not found.".encode())      
 
                 request = self.sock.recv(1024)
 

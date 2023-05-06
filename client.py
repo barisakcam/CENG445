@@ -20,6 +20,7 @@ try:
         print("$ ", end='')
         cmd = input()
 finally:
+    s.send("quit".encode()) # Sending quit command to keep server clean
     print("Client shutdown.")
     s.shutdown(SHUT_RDWR)
     s.close()
