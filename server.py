@@ -1,5 +1,5 @@
 from socket import *
-from threading import Thread, RLock, Condition
+from threading import Thread, RLock, Condition, Event
 import argparse
 import board
 import user
@@ -113,6 +113,7 @@ class Agent(Thread):
             def __init__(self, sock: socket, username: str):
                 self.sock = sock
                 self.username = username
+                self.event = Event()
                 Thread.__init__(self)
 
             def run(self):
@@ -122,7 +123,8 @@ class Agent(Thread):
                             with mutex:
                                 self.sock.send(f"CALLBACK: {users.getmessage(self.username)}".encode())
                         else:
-                            print("is exit?")
+                            if self.event.is_set():
+                                break
 
         def __init__(self, sock: socket):
             self.username = None
@@ -144,8 +146,10 @@ class Agent(Thread):
                     if self.username is not None and users.isattached(self.username):
                         boards.close(self.username)
 
-                    if users.logout(self.username):
-                        self.ch.join()
+                    self.ch.event.set()
+                    self.ch.join()
+                    
+                    users.logout(self.username)
 
                     self.username = None
 
@@ -198,8 +202,10 @@ class Agent(Thread):
                             boards.close(self.username)
                             self.sock.send(f"INFO: Closed board.".encode())
 
-                        if users.logout(self.username): # First join then logout / join may be unnecessary
-                            self.ch.join()
+                        self.ch.event.set()
+                        self.ch.join()
+
+                        users.logout(self.username)
 
                         self.username = None
                         self.sock.send(f"INFO: Logged out.".encode())
