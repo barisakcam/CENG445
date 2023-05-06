@@ -1,13 +1,11 @@
 from socket import *
 from threading import Thread, RLock
-from multiprocessing import Process, Manager
-import sys
 import argparse
 import board
 import user
 import auth
 import sqlite3
-
+import pprint
 
 def parsecommand(line: str):
     arglist = line.rstrip('\n').split(' ')
@@ -15,60 +13,71 @@ def parsecommand(line: str):
 
 class UserDict:
     def __init__(self) -> None:
-        self.mutex = RLock()
         self.data: dict[str, user.User] = {}
 
-    def new(self, username, email, fullname):
-        self.mutex.acquire()
-        if username not in self.data:
-            self.data[username] = user.User(username, email, fullname)
-        else:
-            pass
-        self.mutex.release()
+    def __getitem__(self, index):
+        return self.data[index]
+    
+    def login(self, username, email, fullname):
+        with mutex:
+            if username not in self.data:
+                self.data[username] = user.User(username, email, fullname)
+            else:
+                pass
+
+    def logout(self, username):
+        with mutex:
+            if username in self.data:
+                del self.data[username]
+            else:
+                return False
 
     def list(self):
-        self.mutex.acquire()
-        res = [name for name in self.data]
-        self.mutex.release()
+        with mutex:
+            res = [name for name in self.data]
         return res
     
     def isattached(self, username):
-        self.mutex.acquire()
-        if self.data[username].attachedboard is None:
-            res = False
-        else:
-            res = True
-        self.mutex.release()
+        with mutex:
+            if self.data[username].attachedboard is None:
+                res = False
+            else:
+                res = True
         return res
+
+    def islogin(self, username):
+        with mutex:
+            if username in self.data:
+                return True
+            else:
+                return False
 
 class BoardDict:
     def __init__(self) -> None:
-        self.mutex = RLock()
         self.data: dict[str, board.Board] = {}
 
+    def __getitem__(self, index):
+        return self.data[index]
+
     def new(self, name, file="input.json"):
-        self.mutex.acquire()
-        if name not in self.data:
-            self.data[name] = board.Board(file)
-        else:
-            pass
-        self.mutex.release()
+        with mutex:
+            if name not in self.data:
+                self.data[name] = board.Board(file)
+            else:
+                pass
 
     def list(self):
-        self.mutex.acquire()
-        res = [name for name in self.data]
-        self.mutex.release()
-        return res
+        with mutex:
+            res = [{"boardname": name, "users": [user for user in self.data[name].users]} for name in self.data]
+        return pprint.pformat(res)
     
     def open(self, name, username):
-        self.mutex.acquire()
-        self.data[name].attach(users[username])
-        self.mutex.release()
+        with mutex:
+            self.data[name].attach(users[username])
 
-    def close(self, name, username):
-        self.mutex.acquire()
-        self.data[name].detach(users[username])
-        self.mutex.release()
+    def close(self, username):
+        with mutex:
+            users[username].attachedboard.detach(users[username])
 
 class Agent(Thread):
     class RequestHandler(Thread):
@@ -98,30 +107,29 @@ class Agent(Thread):
 
                             if result is None:
                                 self.sock.send(f"ERROR: User {cmds[1]} not found.".encode())
+                            elif users.islogin(cmds[1]):
+                                self.sock.send(f"ERROR: User already logged in.".encode())
                             elif auth.match(result[2], cmds[2]):
                                 self.username = cmds[1]
-                                users.new(self.username, result[3], result[4])
+                                users.login(self.username, result[3], result[4])
                                 self.sock.send(f"INFO: Logged in.".encode())
                             else:
                                 self.sock.send(f"ERROR: Wrong password.".encode())
 
-                    # new user <username> <password> <mail> <fullname>
-                    elif cmds[0] == "new":
-                        if len(cmds) > 1 and cmds[1] == "board":
-                            self.sock.send(f"ERROR: Log in to use new board command. You can use new user now.".encode())
-                        elif len(cmds) > 1 and cmds[1] == "user":
-                            if len(cmds) != 6:
-                                self.sock.send(f"ERROR: new user expects 4 arguments. Received: {len(cmds) - 2}".encode())
-                            elif cmds[1] == "user":
-                                self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[2],))
-                                result = self.cursor.fetchone()
+                    # createuser <username> <password> <mail> <fullname>
+                    elif cmds[0] == "createuser":
+                        if len(cmds) != 5:
+                            self.sock.send(f"ERROR: createuser expects 4 arguments. Received: {len(cmds) - 1}".encode())
+                        else:
+                            self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
+                            result = self.cursor.fetchone()
 
-                                if result is None:
-                                    self.cursor.execute("INSERT INTO userdata (username, password, email, fullname) VALUES (? , ?, ?, ?)", (cmds[2], auth.hash(cmds[3]), cmds[4], cmds[5]))
-                                    self.connection.commit()
-                                    self.sock.send(f"INFO: User created.".encode())
-                                else:
-                                    self.sock.send(f"ERROR: User already exists.".encode())
+                            if result is None:
+                                self.cursor.execute("INSERT INTO userdata (username, password, email, fullname) VALUES (? , ?, ?, ?)", (cmds[1], auth.hash(cmds[2]), cmds[3], cmds[4]))
+                                self.connection.commit()
+                                self.sock.send(f"INFO: User created.".encode())
+                            else:
+                                self.sock.send(f"ERROR: User already exists.".encode())
                     
                     else:
                         self.sock.send(f"ERROR: Command not found.".encode())
@@ -136,30 +144,44 @@ class Agent(Thread):
                             self.username = None
                             self.sock.send(f"INFO: Logged out.".encode())
 
-                    # new board <boardname> <file>
+                    # new <boardname> <file>?NOTADDED
                     elif cmds[0] == "new":
-                        if len(cmds) > 1 and cmds[1] == "user":
-                            self.sock.send(f"ERROR: Log out to use new user command. You can use new board now.".encode())
-                        elif len(cmds) > 1 and cmds[1] == "board":
-                            if len(cmds) != 3:
-                                self.sock.send(f"ERROR: new user expects 1 arguments. Received: {len(cmds) - 2}".encode())
-                            else:
-                                boards.new(cmds[2])
-                                self.sock.send(f"INFO: Board created.".encode())
-
-                    # list <user | board>
-                    elif cmds[0] == "list":
                         if len(cmds) != 2:
-                            self.sock.send(f"ERROR: list expects 1 arguments. Received: {len(cmds) - 1} ".encode())
+                            self.sock.send(f"ERROR: new expects 1 arguments. Received: {len(cmds) - 1}".encode())
                         else:
-                            if cmds[1] == "user":
-                                self.sock.send("\n".join(users.list()).encode())
-                            elif cmds[1] == "board":
-                                self.sock.send("\n".join(boards.list()).encode())
+                            boards.new(cmds[1])
+                            self.sock.send(f"INFO: Board created.".encode())
+
+                    # list
+                    elif cmds[0] == "list":
+                        if len(cmds) != 1:
+                            self.sock.send(f"ERROR: list expects no arguments. Received: {len(cmds) - 1} ".encode())
+                        else:
+                            #self.sock.send("\n".join(boards.list()).encode())
+                            self.sock.send(boards.list().encode())
+
+                    # open <boardname> 
+                    elif cmds[0] == "open":
+                        if len(cmds) != 2:
+                            self.sock.send(f"ERROR: open expects 1 arguments. Received: {len(cmds) - 1} ".encode())
+                        else:
+                            if users.isattached(self.username):
+                                boards.close(self.username)
+                            
+                            boards.open(cmds[1], self.username)
+                            self.sock.send(f"INFO: Opened board {cmds[1]}".encode())
+
+                    # close
+                    elif cmds[0] == "close":
+                        if len(cmds) != 1:
+                            self.sock.send(f"ERROR: open expects no arguments. Received: {len(cmds) - 1} ".encode())
+                        else:
+                            boards.close(self.username)
+                            self.sock.send(f"INFO: Opened board {cmds[1]}".encode())
 
                     else:
                         self.sock.send(f"ERROR: Command not found.".encode())
-
+                    
 
                 request = self.sock.recv(1024)
 
@@ -183,6 +205,7 @@ class Agent(Thread):
         self.rh.join()
         self.ch.join()
 
+mutex = RLock()
 boards = BoardDict()
 users = UserDict()
 

@@ -1,5 +1,6 @@
 import auth
 import pprint
+import board
 
 class UserNotAttached(Exception):
     pass
@@ -57,7 +58,7 @@ class User:
         self.fullname = fullname
         ##############################
         self.status = UserStatus()
-        self.attachedboard = None
+        self.attachedboard: board.Board = None
 
     def reset(self) -> None:
         self.status.reset()
