@@ -2,16 +2,7 @@ from collections.abc import Callable, Iterable, Mapping
 from socket import *
 import argparse
 from threading import Thread, RLock, Condition
-from typing import Any
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--port', type=int, default=1234, action='store')
-args = parser.parse_args()
-
-s = socket(AF_INET, SOCK_STREAM)
-s.connect(('', args.port))
-
-cmd = input()
+import json
 
 class Listener(Thread):
     def __init__(self):
@@ -23,12 +14,27 @@ class Listener(Thread):
             print(response.decode())
             response = s.recv(1024)
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--port', type=int, default=1234, action='store')
+args = parser.parse_args()
+
+s = socket(AF_INET, SOCK_STREAM)
+s.connect(('', args.port))
+
+cmd = input()
+
 try:
     ls = Listener()
     ls.start()
 
     while cmd != "quit":
         if cmd != "":
+            #cmds = list(filter(None, cmd.split(" ")))
+            #if cmds[0] == "new":
+            #    print(cmds)
+            #    with open(cmds[2], "r") as f:
+            #        data = json.load(f)
+            #        print(data)
             s.send(cmd.encode())
         cmd = input()
 finally:

@@ -74,7 +74,8 @@ class Board:
         self.constructor(file)
 
     def constructor(self, file: str) -> None:
-        with open(file, "r") as f:
+        self.file = file
+        with open(self.file, "r") as f:
             data = json.load(f)
         
         self.users = {}

@@ -15,7 +15,7 @@ class UserNotAttached(Exception):
 
 def parsecommand(line: str):
     arglist = line.rstrip('\n').split(' ')
-    return arglist
+    return list(filter(None, arglist))
 
 class UserDict:
     def __init__(self) -> None:
@@ -61,7 +61,16 @@ class UserDict:
             
     def getmessage(self, username):
         with mutex:
-            return users[username].callbackqueue.get()
+            res = []
+            while not users[username].callbackqueue.empty():
+                print("popped")
+                res.append(users[username].callbackqueue.get())
+            return "\n".join(res)
+        
+    def play(self, username, command):
+        with mutex:
+            print(command)
+            users[username].attachedboard.turn(users[username], command)
 
 class BoardDict:
     def __init__(self) -> None:
@@ -70,7 +79,7 @@ class BoardDict:
     def __getitem__(self, index):
         return self.data[index]
 
-    def new(self, name, file="input.json"):
+    def new(self, name, file):
         with mutex:
             if name not in self.data:
                 self.data[name] = board.Board(file)
@@ -93,10 +102,9 @@ class BoardDict:
     def close(self, username):
         with mutex:
             if users[username].attachedboard is None:
-                return False
+                raise UserNotAttached
             else:
                 users[username].attachedboard.detach(users[username])
-                return True
 
     def ready(self, username):
         with mutex:
@@ -119,8 +127,7 @@ class Agent(Thread):
             while True:
                 with users[self.username].cv:
                     if users[self.username].cv.wait(timeout=0.5):
-                        with mutex:
-                            self.sock.send(f"CALLBACK: {users.getmessage(self.username)}".encode())
+                        self.sock.send(f"CALLBACK: {users.getmessage(self.username)}".encode())
                     else:
                         if self.event.is_set():
                             break
@@ -142,11 +149,12 @@ class Agent(Thread):
             # quit command is sent when a client terminates connection
             # It is used to logout the quiting user to make sure server state remains clean
             if cmds[0] == "quit":
-                if self.username is not None and users.isattached(self.username):
-                    boards.close(self.username)
+                if self.username is not None:
+                    if users.isattached(self.username):
+                        boards.close(self.username)
 
-                self.ch.event.set()
-                self.ch.join()
+                    self.ch.event.set()
+                    self.ch.join()
                 
                 users.logout(self.username)
 
@@ -209,13 +217,16 @@ class Agent(Thread):
                     self.username = None
                     self.sock.send(f"INFO: Logged out.".encode())
 
-                # new <boardname> <file>?NOTADDED
+                # new <boardname> <file>
                 elif cmds[0] == "new":
-                    if len(cmds) != 2:
-                        self.sock.send(f"ERROR: new expects 1 arguments. Received: {len(cmds) - 1}".encode())
+                    if len(cmds) != 3:
+                        self.sock.send(f"ERROR: new expects 2 arguments. Received: {len(cmds) - 1}".encode())
                     else:
-                        boards.new(cmds[1])
-                        self.sock.send(f"INFO: Board created.".encode())
+                        try:
+                            boards.new(cmds[1], cmds[2])
+                            self.sock.send(f"INFO: Board created.".encode())
+                        except FileNotFoundError:
+                            self.sock.send(f"ERROR: Input file not found.".encode())
 
                 # list
                 elif cmds[0] == "list":
@@ -244,9 +255,10 @@ class Agent(Thread):
                     if len(cmds) != 1:
                         self.sock.send(f"ERROR: open expects no arguments. Received: {len(cmds) - 1} ".encode())
                     else:
-                        if boards.close(self.username):
+                        try:
+                            boards.close(self.username)
                             self.sock.send(f"INFO: Closed board.".encode())
-                        else:
+                        except UserNotAttached: # TODO: Convert others to exceptions too
                             self.sock.send(f"ERROR: No board is open.".encode())
 
                 # ready
@@ -262,6 +274,48 @@ class Agent(Thread):
                         except UserAlreadyReady:
                             self.sock.send(f"ERROR: Already ready.".encode())
 
+                elif cmds[0] in play_commands:
+                    print("play start")
+
+                    try:
+                        users.play(self.username, cmds[0])
+                    except board.GameCommandNotFound:
+                        self.sock.send("ERROR: Game command not found".encode())
+                    except board.AlreadyRolled:
+                        self.sock.send("ERROR: User already rolled".encode())
+                    except board.NotRolled:
+                        self.sock.send("ERROR: User not rolled yet".encode())
+                    except board.NotProperty:
+                        self.sock.send("ERROR: Not a property".encode())
+                    except board.PropertyOwned:
+                        self.sock.send("ERROR: Property is already owned".encode())
+                    except board.PropertyNotOwned:
+                        self.sock.send("ERROR: Property is not owned by user".encode())
+                    except board.PropertyMaxLevel:
+                        self.sock.send("ERROR: Property is already level 5".encode())
+                    except board.NotEnoughMoney:
+                        self.sock.send("ERROR: Not enough money".encode())
+                    except board.NotJail:
+                        self.sock.send("ERROR: Not in jail".encode())
+                    except board.NotTeleport:
+                        self.sock.send("ERROR: Not in teleport".encode())
+                    except board.InsufficientArguments:
+                        self.sock.send("ERROR: There are insufficient arguments for the command".encode())
+                    except board.MustPick:
+                        self.sock.send("ERROR: Must pick a property".encode())
+                    except board.MustTeleport:
+                        self.sock.send("ERROR: Must teleport".encode())
+                    except board.InvalidTeleport:
+                        self.sock.send("ERROR: Teleport is limited to property cells".encode())
+                    except board.CellIndexError:
+                        self.sock.send("ERROR: Given cell index is out of range".encode())
+                    except board.PropertyOp:
+                        self.sock.send("ERROR: Only one property operation can be done in a turn".encode())
+                    except board.PickError:
+                        self.sock.send("ERROR: No need to pick a property".encode())
+
+                    print("play end")
+
                 else:
                     self.sock.send(f"ERROR: Command not found.".encode())      
 
@@ -273,6 +327,7 @@ class Agent(Thread):
 mutex = RLock()
 boards = BoardDict()
 users = UserDict()
+play_commands = ["roll"]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
