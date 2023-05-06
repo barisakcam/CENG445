@@ -108,176 +108,167 @@ class BoardDict:
                 users[username].attachedboard.ready(users[username])
 
 class Agent(Thread):
-    class RequestHandler(Thread):
-        class CallbackHandler(Thread):
-            def __init__(self, sock: socket, username: str):
-                self.sock = sock
-                self.username = username
-                self.event = Event()
-                Thread.__init__(self)
-
-            def run(self):
-                while True:
-                    with users[self.username].cv:
-                        if users[self.username].cv.wait(timeout=0.5):
-                            with mutex:
-                                self.sock.send(f"CALLBACK: {users.getmessage(self.username)}".encode())
-                        else:
-                            if self.event.is_set():
-                                break
-
-        def __init__(self, sock: socket):
-            self.username = None
+    class CallbackHandler(Thread):
+        def __init__(self, sock: socket, username: str):
             self.sock = sock
+            self.username = username
+            self.event = Event()
             Thread.__init__(self)
 
         def run(self):
-            self.connection = sqlite3.connect("userdata.db")
-            self.cursor = self.connection.cursor()
+            while True:
+                with users[self.username].cv:
+                    if users[self.username].cv.wait(timeout=0.5):
+                        with mutex:
+                            self.sock.send(f"CALLBACK: {users.getmessage(self.username)}".encode())
+                    else:
+                        if self.event.is_set():
+                            break
 
-            request = self.sock.recv(1024)
-            while request != b'':
-                cmds = parsecommand(request.decode())
-                print(self.username, "commanded", cmds)
+    def __init__(self, sock: socket):
+        self.username = None
+        self.sock = sock
+        Thread.__init__(self)
 
-                # quit command is sent when a client terminates connection
-                # It is used to logout the quiting user to make sure server state remains clean
-                if cmds[0] == "quit":
-                    if self.username is not None and users.isattached(self.username):
+    def run(self):
+        self.connection = sqlite3.connect("userdata.db")
+        self.cursor = self.connection.cursor()
+
+        request = self.sock.recv(1024)
+        while request != b'':
+            cmds = parsecommand(request.decode())
+            print(self.username, "commanded", cmds)
+
+            # quit command is sent when a client terminates connection
+            # It is used to logout the quiting user to make sure server state remains clean
+            if cmds[0] == "quit":
+                if self.username is not None and users.isattached(self.username):
+                    boards.close(self.username)
+
+                self.ch.event.set()
+                self.ch.join()
+                
+                users.logout(self.username)
+
+                self.username = None
+
+            if self.username is None:
+
+                # login <username> <password>
+                if cmds[0] == "login":
+                    if len(cmds) != 3:
+                        self.sock.send(f"ERROR: login expects 2 arguments. Received: {len(cmds) - 1}".encode())
+                    else:
+                        self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
+                        result = self.cursor.fetchone()
+
+                        if result is None:
+                            self.sock.send(f"ERROR: User {cmds[1]} not found.".encode())
+                        elif users.islogin(cmds[1]):
+                            self.sock.send(f"ERROR: User already logged in.".encode())
+                        elif auth.match(result[2], cmds[2]):
+                            self.username = cmds[1]
+                            users.login(self.username, result[3], result[4])
+                            self.ch = self.CallbackHandler(self.sock, self.username)
+                            self.ch.start()
+                            self.sock.send(f"INFO: Logged in.".encode())
+                        else:
+                            self.sock.send(f"ERROR: Wrong password.".encode())
+
+                # createuser <username> <password> <mail> <fullname>
+                elif cmds[0] == "createuser":
+                    if len(cmds) != 5:
+                        self.sock.send(f"ERROR: createuser expects 4 arguments. Received: {len(cmds) - 1}".encode())
+                    else:
+                        self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
+                        result = self.cursor.fetchone()
+
+                        if result is None:
+                            self.cursor.execute("INSERT INTO userdata (username, password, email, fullname) VALUES (? , ?, ?, ?)", (cmds[1], auth.hash(cmds[2]), cmds[3], cmds[4]))
+                            self.connection.commit()
+                            self.sock.send(f"INFO: User created.".encode())
+                        else:
+                            self.sock.send(f"ERROR: User already exists.".encode())
+                
+                else:
+                    self.sock.send(f"ERROR: Command not found.".encode())
+
+            else:
+
+                # logout
+                if cmds[0] == "logout":
+                    if users.isattached(self.username):
                         boards.close(self.username)
+                        self.sock.send(f"INFO: Closed board.".encode())
 
                     self.ch.event.set()
                     self.ch.join()
-                    
+
                     users.logout(self.username)
 
                     self.username = None
+                    self.sock.send(f"INFO: Logged out.".encode())
 
-                if self.username is None:
-
-                    # login <username> <password>
-                    if cmds[0] == "login":
-                        if len(cmds) != 3:
-                            self.sock.send(f"ERROR: login expects 2 arguments. Received: {len(cmds) - 1}".encode())
-                        else:
-                            self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
-                            result = self.cursor.fetchone()
-
-                            if result is None:
-                                self.sock.send(f"ERROR: User {cmds[1]} not found.".encode())
-                            elif users.islogin(cmds[1]):
-                                self.sock.send(f"ERROR: User already logged in.".encode())
-                            elif auth.match(result[2], cmds[2]):
-                                self.username = cmds[1]
-                                users.login(self.username, result[3], result[4])
-                                self.ch = self.CallbackHandler(self.sock, self.username)
-                                self.ch.start()
-                                self.sock.send(f"INFO: Logged in.".encode())
-                            else:
-                                self.sock.send(f"ERROR: Wrong password.".encode())
-
-                    # createuser <username> <password> <mail> <fullname>
-                    elif cmds[0] == "createuser":
-                        if len(cmds) != 5:
-                            self.sock.send(f"ERROR: createuser expects 4 arguments. Received: {len(cmds) - 1}".encode())
-                        else:
-                            self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
-                            result = self.cursor.fetchone()
-
-                            if result is None:
-                                self.cursor.execute("INSERT INTO userdata (username, password, email, fullname) VALUES (? , ?, ?, ?)", (cmds[1], auth.hash(cmds[2]), cmds[3], cmds[4]))
-                                self.connection.commit()
-                                self.sock.send(f"INFO: User created.".encode())
-                            else:
-                                self.sock.send(f"ERROR: User already exists.".encode())
-                    
+                # new <boardname> <file>?NOTADDED
+                elif cmds[0] == "new":
+                    if len(cmds) != 2:
+                        self.sock.send(f"ERROR: new expects 1 arguments. Received: {len(cmds) - 1}".encode())
                     else:
-                        self.sock.send(f"ERROR: Command not found.".encode())
+                        boards.new(cmds[1])
+                        self.sock.send(f"INFO: Board created.".encode())
 
-                else:
+                # list
+                elif cmds[0] == "list":
+                    if len(cmds) != 1:
+                        self.sock.send(f"ERROR: list expects no arguments. Received: {len(cmds) - 1} ".encode())
+                    else:
+                        #self.sock.send("\n".join(boards.list()).encode())
+                        self.sock.send(boards.list().encode())
 
-                    # logout
-                    if cmds[0] == "logout":
+                # open <boardname> 
+                elif cmds[0] == "open":
+                    if len(cmds) != 2:
+                        self.sock.send(f"ERROR: open expects 1 arguments. Received: {len(cmds) - 1} ".encode())
+                    else:
                         if users.isattached(self.username):
                             boards.close(self.username)
                             self.sock.send(f"INFO: Closed board.".encode())
 
-                        self.ch.event.set()
-                        self.ch.join()
-
-                        users.logout(self.username)
-
-                        self.username = None
-                        self.sock.send(f"INFO: Logged out.".encode())
-
-                    # new <boardname> <file>?NOTADDED
-                    elif cmds[0] == "new":
-                        if len(cmds) != 2:
-                            self.sock.send(f"ERROR: new expects 1 arguments. Received: {len(cmds) - 1}".encode())
+                        if boards.open(cmds[1], self.username):
+                            self.sock.send(f"INFO: Opened board {cmds[1]}.".encode())
                         else:
-                            boards.new(cmds[1])
-                            self.sock.send(f"INFO: Board created.".encode())
+                            self.sock.send(f"ERROR: Board not found.".encode())
 
-                    # list
-                    elif cmds[0] == "list":
-                        if len(cmds) != 1:
-                            self.sock.send(f"ERROR: list expects no arguments. Received: {len(cmds) - 1} ".encode())
-                        else:
-                            #self.sock.send("\n".join(boards.list()).encode())
-                            self.sock.send(boards.list().encode())
-
-                    # open <boardname> 
-                    elif cmds[0] == "open":
-                        if len(cmds) != 2:
-                            self.sock.send(f"ERROR: open expects 1 arguments. Received: {len(cmds) - 1} ".encode())
-                        else:
-                            if users.isattached(self.username):
-                                boards.close(self.username)
-                                self.sock.send(f"INFO: Closed board.".encode())
-
-                            if boards.open(cmds[1], self.username):
-                                self.sock.send(f"INFO: Opened board {cmds[1]}.".encode())
-                            else:
-                                self.sock.send(f"ERROR: Board not found.".encode())
-
-                    # close
-                    elif cmds[0] == "close":
-                        if len(cmds) != 1:
-                            self.sock.send(f"ERROR: open expects no arguments. Received: {len(cmds) - 1} ".encode())
-                        else:
-                            if boards.close(self.username):
-                                self.sock.send(f"INFO: Closed board.".encode())
-                            else:
-                                self.sock.send(f"ERROR: No board is open.".encode())
-
-                    # ready
-                    elif cmds[0] == "ready":
-                        if len(cmds) != 1:
-                            self.sock.send(f"ERROR: ready expects no arguments. Received: {len(cmds) - 1} ".encode())
-                        else:
-                            try:
-                                boards.ready(self.username)
-                                self.sock.send(f"INFO: Ready".encode())
-                            except UserNotAttached:
-                                self.sock.send(f"ERROR: No board is open.".encode())
-                            except UserAlreadyReady:
-                                self.sock.send(f"ERROR: Already ready.".encode())
-
+                # close
+                elif cmds[0] == "close":
+                    if len(cmds) != 1:
+                        self.sock.send(f"ERROR: open expects no arguments. Received: {len(cmds) - 1} ".encode())
                     else:
-                        self.sock.send(f"ERROR: Command not found.".encode())      
+                        if boards.close(self.username):
+                            self.sock.send(f"INFO: Closed board.".encode())
+                        else:
+                            self.sock.send(f"ERROR: No board is open.".encode())
 
-                request = self.sock.recv(1024)
+                # ready
+                elif cmds[0] == "ready":
+                    if len(cmds) != 1:
+                        self.sock.send(f"ERROR: ready expects no arguments. Received: {len(cmds) - 1} ".encode())
+                    else:
+                        try:
+                            boards.ready(self.username)
+                            self.sock.send(f"INFO: Ready".encode())
+                        except UserNotAttached:
+                            self.sock.send(f"ERROR: No board is open.".encode())
+                        except UserAlreadyReady:
+                            self.sock.send(f"ERROR: Already ready.".encode())
 
-            print("Agent shutdown.") # For DEBUG
+                else:
+                    self.sock.send(f"ERROR: Command not found.".encode())      
 
-    def __init__(self, sock: socket):
-        self.socket = sock
-        self.rh = self.RequestHandler(sock)
-        Thread.__init__(self)
+            request = self.sock.recv(1024)
 
-    def run(self):
-        self.rh.start()
-        self.rh.join()
+        print("Agent shutdown.") # For DEBUG
+
 
 mutex = RLock()
 boards = BoardDict()
