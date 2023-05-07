@@ -508,7 +508,7 @@ class Board:
             temp = self.getpossiblemoves(user)
             if len(temp) == 1 and temp[0] == "end":
                 self.turn(user, "end") # Calling end since it is the only possible command
-            else:
+            elif self.gamestarted:
                 self.sendturncb(user, f"Turn continues. Possible commands: {temp}")
 
     def getuserstate(self, user: User) -> str:
