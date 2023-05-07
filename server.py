@@ -395,6 +395,8 @@ class Agent(Thread):
                         self.sock.send(users.getstatus(cmds[1]).encode())
                     except UserDoesNotExist:
                         self.sock.send("ERROR: User does not exist.".encode())
+                    except IndexError:
+                        self.sock.send("ERROR: User name is expected.".encode())
 
                 # boardinfo <boardname>
                 elif cmds[0] == "boardinfo":
@@ -402,6 +404,8 @@ class Agent(Thread):
                         self.sock.send(boards.getstatus(cmds[1]).encode())
                     except BoardDoesNotExist:
                         self.sock.send("ERROR: Board does not exist.".encode())
+                    except IndexError:
+                        self.sock.send("ERROR: Board name is expected.".encode())
 
                 else:
                     self.sock.send(f"ERROR: Command not found.".encode())      
@@ -414,7 +418,7 @@ class Agent(Thread):
 mutex = RLock()
 boards = BoardDict()
 users = UserDict()
-play_commands = ["roll", "buy", "upgrade", "teleport", "pick", "end"] # TODO: Adding commands one by one and testing
+play_commands = ["roll", "buy", "upgrade", "teleport", "pick", "bail", "end"] # TODO: Adding commands one by one and testing
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -433,6 +433,21 @@ class Board:
                                 user.status.location_index = int(newcell)
                                 self.sendcallbacks(f"{user.username} teleported to {self.cells[int(newcell)].type}")
                                 user.status.paidteleport = False
+
+                                if self.cells[user.status.location_index].property.owner is not None:
+                                    if self.cells[user.status.location_index].property.owner != user.username:
+                                        if not self.users[self.cells[user.status.location_index].property.owner].status.jail:
+                                            if user.status.money < self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]:
+                                                self.users[self.cells[user.status.location_index].property.owner].status.money += user.status.money
+                                                user.status.money = 0
+                                                self.sendcallbacks(f'{user.username} could not pay rent and bankrupted.')
+                                                self.gameover()
+                                            else:
+                                                self.users[self.cells[user.status.location_index].property.owner].status.money += self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                                                user.status.money -= self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                                                self.sendcallbacks(f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.cells[user.status.location_index].property.owner}.')
+                                        else:
+                                            self.sendcallbacks(f'{user.username} did not pay rent since {self.cells[user.status.location_index].property.owner} is in jail.')
                             else:
                                 raise InvalidTeleport
                         else:
@@ -442,6 +457,21 @@ class Board:
                             user.status.location_index = int(newcell)
                             self.sendcallbacks(f"{user.username} teleported to {self.cells[int(newcell)].type}")
                             user.status.freeteleport = False
+
+                            if self.cells[user.status.location_index].property.owner is not None:
+                                if self.cells[user.status.location_index].property.owner != user.username:
+                                    if not self.users[self.cells[user.status.location_index].property.owner].status.jail:
+                                        if user.status.money < self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]:
+                                            self.users[self.cells[user.status.location_index].property.owner].status.money += user.status.money
+                                            user.status.money = 0
+                                            self.sendcallbacks(f'{user.username} could not pay rent and bankrupted.')
+                                            self.gameover()
+                                        else:
+                                            self.users[self.cells[user.status.location_index].property.owner].status.money += self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                                            user.status.money -= self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]
+                                            self.sendcallbacks(f'{user.username} paid {self.cells[user.status.location_index].property.rents[self.cells[user.status.location_index].property.level - 1]} rent to {self.cells[user.status.location_index].property.owner}.')
+                                    else:
+                                        self.sendcallbacks(f'{user.username} did not pay rent since {self.cells[user.status.location_index].property.owner} is in jail.')
                         else:
                             raise InvalidTeleport
                     else:
