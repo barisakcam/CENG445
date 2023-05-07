@@ -562,13 +562,16 @@ class Board:
     
     # After the game ends, all users are detached
     def gameover(self) -> None:
-        print("GAME OVER. RESULTS:")
+        print("GAME OVER")
+        report = "\n".join(["GAME OVER. RESULTS:"] + [self.getuserstate(self.users[user]) for user in self.users])
+        self.sendcallbacks(report)
         for user in self.users:
-            print("==================================")
-            print(self.getuserstate(self.users[user]))
-
+            with self.users[user].cv:
+                self.users[user].cv.notify_all()
+        for spec in self.spectators:
+            with self.spectators[spec].cv:
+                self.spectators[spec].cv.notify_all()
         self.reset()
-        #self.delete()
 
     #def __repr__(self) -> str:
     #    for i in self.cells:
