@@ -294,9 +294,9 @@ class Agent(Thread):
                     try:
                         users.play(self.username, cmds[0])
                     except UserNotAttached:
-                        self.sock.send(f"ERROR: No board is open.".encode())
+                        self.sock.send(f"ERROR: No board is open.\n".encode())
                     except NotUsersTurn:
-                        self.sock.send(f"ERROR: Not your turn or game is not started yet.".encode())
+                        self.sock.send(f"ERROR: Not your turn or game is not started yet.\n".encode())
                     except board.GameCommandNotFound:
                         self.sock.send("ERROR: Game command not found\n".encode())
                     except board.AlreadyRolled:
