@@ -304,6 +304,8 @@ class Agent(Thread):
                             self.sock.send(f"ERROR: You are a spectator.".encode())
 
                 elif cmds[0] in play_commands:
+                    print("play start")
+
                     try:
                         if cmds[0] == "teleport":
                             if len(cmds) != 2:
@@ -365,7 +367,7 @@ class Agent(Thread):
                     except board.PickError:
                         self.sock.send("ERROR: No need to pick a property".encode())
 
-                    boards.notify(self.username)
+                    print("play end")
 
                 else:
                     self.sock.send(f"ERROR: Command not found.".encode())      
