@@ -125,11 +125,13 @@ class User:
 
     def callback(self, message: str) -> None:
         with self.cv:
-            self.callbackqueue.put(message)
+            self.callbackqueue.put(f"CALLBACK: {message}")
         print(f"{self.username} received callback:")
         print(message)
 
     def turncb(self, message: str) -> None:
+        with self.cv:
+            self.callbackqueue.put(f"TURNCB: {message}")
         print(f"{self.username} received turncb:")
         print(message)
 

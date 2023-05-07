@@ -69,7 +69,7 @@ class UserDict:
         with mutex:
             res = []
             while not users[username].callbackqueue.empty():
-                res.append(f"CALLBACK: {users[username].callbackqueue.get()}")
+                res.append(f"{users[username].callbackqueue.get()}")
             return "\n".join(res)
         
     def play(self, username, command, newcell=None, pick=None):
@@ -296,6 +296,7 @@ class Agent(Thread):
                         try:
                             boards.ready(self.username)
                             self.sock.send(f"INFO: Ready".encode())
+                            boards.notify(self.username)
                         except UserNotAttached:
                             self.sock.send(f"ERROR: No board is open.".encode())
                         except UserAlreadyReady:
@@ -326,6 +327,8 @@ class Agent(Thread):
                                 self.sock.send(f"ERROR: {cmds[0]} expects no argument. Received: {len(cmds) - 1} ".encode())
                             else:
                                 users.play(self.username, cmds[0])
+                        
+                        boards.notify(self.username)
                     except UserNotAttached:
                         self.sock.send(f"ERROR: No board is open.".encode())
                     except NotUsersTurn:
@@ -364,8 +367,6 @@ class Agent(Thread):
                         self.sock.send("ERROR: Only one property operation can be done in a turn".encode())
                     except board.PickError:
                         self.sock.send("ERROR: No need to pick a property".encode())
-
-                    boards.notify(self.username)
 
                 else:
                     self.sock.send(f"ERROR: Command not found.".encode())      
