@@ -13,6 +13,9 @@ class UserAlreadyReady(Exception):
 class UserNotAttached(Exception):
     pass
 
+class NotUsersTurn(Exception):
+    pass
+
 def parsecommand(line: str):
     arglist = line.rstrip('\n').split(' ')
     return list(filter(None, arglist))
@@ -63,14 +66,17 @@ class UserDict:
         with mutex:
             res = []
             while not users[username].callbackqueue.empty():
-                print("popped")
                 res.append(users[username].callbackqueue.get())
             return "\n".join(res)
         
     def play(self, username, command):
         with mutex:
-            print(command)
-            users[username].attachedboard.turn(users[username], command)
+            if users[username].attachedboard is None:
+                raise UserNotAttached
+            elif not users[username].status.isplaying:
+                raise NotUsersTurn
+            else:
+                users[username].attachedboard.turn(users[username], command)
 
 class BoardDict:
     def __init__(self) -> None:
@@ -114,6 +120,12 @@ class BoardDict:
                 raise UserAlreadyReady
             else:
                 users[username].attachedboard.ready(users[username])
+
+    def notify(self, username): # TODO: Too messy, check with multiple agents
+        with mutex:
+            for user in users[username].attachedboard.users:
+                with users[user].cv:
+                    users[user].cv.notify_all()
 
 class Agent(Thread):
     class CallbackHandler(Thread):
@@ -275,10 +287,12 @@ class Agent(Thread):
                             self.sock.send(f"ERROR: Already ready.".encode())
 
                 elif cmds[0] in play_commands:
-                    print("play start")
-
                     try:
                         users.play(self.username, cmds[0])
+                    except UserNotAttached:
+                        self.sock.send(f"ERROR: No board is open.".encode())
+                    except NotUsersTurn:
+                        self.sock.send(f"ERROR: Not your turn or game is not started yet.".encode())
                     except board.GameCommandNotFound:
                         self.sock.send("ERROR: Game command not found".encode())
                     except board.AlreadyRolled:
@@ -314,7 +328,7 @@ class Agent(Thread):
                     except board.PickError:
                         self.sock.send("ERROR: No need to pick a property".encode())
 
-                    print("play end")
+                    boards.notify(self.username)
 
                 else:
                     self.sock.send(f"ERROR: Command not found.".encode())      
@@ -327,7 +341,7 @@ class Agent(Thread):
 mutex = RLock()
 boards = BoardDict()
 users = UserDict()
-play_commands = ["roll"]
+play_commands = ["roll", "end"] # TODO: Adding commands one by one and testing
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

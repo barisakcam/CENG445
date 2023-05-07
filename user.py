@@ -122,10 +122,8 @@ class User:
         pass
 
     def callback(self, message: str) -> None:
-        print("CALLBACK") # TODO: There is a bug somewhere here
         with self.cv:
             self.callbackqueue.put(message)
-            self.cv.notify_all()
         print(f"{self.username} received callback:")
         print(message)
 
