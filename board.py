@@ -164,7 +164,7 @@ class Board:
 
             del self.spectators[user.username]
             user.reset()
-            
+
         else:
             raise UserNotFound
     
@@ -543,6 +543,8 @@ class Board:
         
         for user in self.users:
             self.users[user].reset()
+        for spec in self.spectators:
+            self.users[spec].reset()
         self.delete()
 
     #def __repr__(self) -> str:
