@@ -111,29 +111,25 @@ class Board:
         self.teleport = 0
         self.lottery = 0
 
-    def update(self, file: str) -> None:
-        with open(file, "r") as f:
-            data = json.load(f)
-
+    def reset(self) -> None:
         self.gamestarted = False
         self.userslist = [] # list to determine order of turns, set when game starts, sorted to make sure its deterministic
         self.turncounter = 0
 
-        self.cells = [Cell(i) for i in data["cells"]]
-        self.chance = data["chances"]
         self.chance_index = 0
-        self.startup = data["startup"]
-        self.upgrade = data["upgrade"]
-        self.tax = data["tax"]
-        self.jailbail = data["jailbail"]
-        self.teleport = data["teleport"]
-        self.lottery = data["lottery"]
 
+        for cell in self.cells:
+            if cell.type == "property":
+                cell.property.owner = None
+                cell.property.level = 1
         # User states are reset since a new game starts with a new input file
         for user in self.users:
-            self.users[user].reset()
+            self.users[user].status.reset()
         for spec in self.spectators:
-            self.spectators[spec].reset()
+            self.users[spec] = self.spectators[spec]
+            self.users[spec].status.reset()
+        
+        self.spectators.clear()
 
     # Since callback and turncb are methods in User class, they are not given to attach seperately
     def attach(self, user: User) -> None:
@@ -540,12 +536,9 @@ class Board:
         for user in self.users:
             print("==================================")
             print(self.getuserstate(self.users[user]))
-        
-        for user in self.users:
-            self.users[user].reset()
-        for spec in self.spectators:
-            self.spectators[spec].reset()
-        self.delete()
+
+        self.reset()
+        #self.delete()
 
     #def __repr__(self) -> str:
     #    for i in self.cells:

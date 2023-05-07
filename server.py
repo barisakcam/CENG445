@@ -19,6 +19,12 @@ class NotUsersTurn(Exception):
 class UserIsSpectator(Exception):
     pass
 
+class UserDoesNotExist(Exception):
+    pass
+
+class BoardDoesNotExist(Exception):
+    pass
+
 def parsecommand(line: str):
     arglist = line.rstrip('\n').split(' ')
     return list(filter(None, arglist))
@@ -68,23 +74,30 @@ class UserDict:
     def getmessage(self, username):
         with mutex:
             res = []
-            while not users[username].callbackqueue.empty():
-                res.append(f"{users[username].callbackqueue.get()}")
+            while not self.data[username].callbackqueue.empty():
+                res.append(f"{self.data[username].callbackqueue.get()}")
             return "\n".join(res)
         
     def play(self, username, command, newcell=None, pick=None):
         with mutex:
-            if users[username].attachedboard is None:
+            if self.data[username].attachedboard is None:
                 raise UserNotAttached
-            elif not users[username].status.isplaying:
+            elif not self.data[username].status.isplaying:
                 raise NotUsersTurn
             else:
                 if command == "teleport":
-                    users[username].attachedboard.turn(users[username], command, newcell=newcell)
+                    self.data[username].attachedboard.turn(self.data[username], command, newcell=newcell)
                 elif command == "pick":
-                    users[username].attachedboard.turn(users[username], command, pick=pick)
+                    self.data[username].attachedboard.turn(self.data[username], command, pick=pick)
                 else:
-                    users[username].attachedboard.turn(users[username], command)
+                    self.data[username].attachedboard.turn(self.data[username], command)
+
+    def getstatus(self, username):
+        with mutex:
+            if username in self.data:
+                return pprint.pformat(self.data[username].getstatus())
+            else:
+                raise UserDoesNotExist
 
 class BoardDict:
     def __init__(self) -> None:
@@ -141,6 +154,13 @@ class BoardDict:
             for spec in users[username].attachedboard.spectators:
                 with users[spec].cv:
                     users[spec].cv.notify_all()
+
+    def getstatus(self, boardname):
+        with mutex:
+            if boardname in self.data:
+                return self.data[boardname].getboardstate()
+            else:
+                raise BoardDoesNotExist
 
 class Agent(Thread):
     class CallbackHandler(Thread):
@@ -304,6 +324,7 @@ class Agent(Thread):
                         except UserIsSpectator:
                             self.sock.send(f"ERROR: You are a spectator.".encode())
 
+                # <playcommand> [newcell | pick]
                 elif cmds[0] in play_commands:
                     try:
                         if cmds[0] == "teleport":
@@ -367,6 +388,20 @@ class Agent(Thread):
                         self.sock.send("ERROR: Only one property operation can be done in a turn".encode())
                     except board.PickError:
                         self.sock.send("ERROR: No need to pick a property".encode())
+
+                # userinfo <username>
+                elif cmds[0] == "userinfo":
+                    try:
+                        self.sock.send(users.getstatus(cmds[1]).encode())
+                    except UserDoesNotExist:
+                        self.sock.send("ERROR: User does not exist.".encode())
+
+                # boardinfo <boardname>
+                elif cmds[0] == "boardinfo":
+                    try:
+                        self.sock.send(boards.getstatus(cmds[1]).encode())
+                    except BoardDoesNotExist:
+                        self.sock.send("ERROR: Board does not exist.".encode())
 
                 else:
                     self.sock.send(f"ERROR: Command not found.".encode())      
