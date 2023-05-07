@@ -16,6 +16,9 @@ class UserNotAttached(Exception):
 class NotUsersTurn(Exception):
     pass
 
+class UserIsSpectator(Exception):
+    pass
+
 def parsecommand(line: str):
     arglist = line.rstrip('\n').split(' ')
     return list(filter(None, arglist))
@@ -66,17 +69,22 @@ class UserDict:
         with mutex:
             res = []
             while not users[username].callbackqueue.empty():
-                res.append(users[username].callbackqueue.get())
+                res.append(f"CALLBACK: {users[username].callbackqueue.get()}")
             return "\n".join(res)
         
-    def play(self, username, command):
+    def play(self, username, command, newcell=None, pick=None):
         with mutex:
             if users[username].attachedboard is None:
                 raise UserNotAttached
             elif not users[username].status.isplaying:
                 raise NotUsersTurn
             else:
-                users[username].attachedboard.turn(users[username], command)
+                if command == "teleport":
+                    users[username].attachedboard.turn(users[username], command, newcell=newcell)
+                elif command == "pick":
+                    users[username].attachedboard.turn(users[username], command, pick=pick)
+                else:
+                    users[username].attachedboard.turn(users[username], command)
 
 class BoardDict:
     def __init__(self) -> None:
@@ -94,7 +102,9 @@ class BoardDict:
 
     def list(self):
         with mutex:
-            res = [{"boardname": name, "users": [user for user in self.data[name].users]} for name in self.data]
+            res = [{"boardname": name, 
+                    "users": [user for user in self.data[name].users], 
+                    "spectators": [spectator for spectator in self.data[name].spectators]} for name in self.data]
         return pprint.pformat(res)
     
     def open(self, name, username):
@@ -118,6 +128,8 @@ class BoardDict:
                 raise UserNotAttached
             elif users[username].status.ready:
                 raise UserAlreadyReady
+            elif users[username].status.isspectator:
+                raise UserIsSpectator
             else:
                 users[username].attachedboard.ready(users[username])
 
@@ -126,6 +138,9 @@ class BoardDict:
             for user in users[username].attachedboard.users:
                 with users[user].cv:
                     users[user].cv.notify_all()
+            for spec in users[username].attachedboard.spectators:
+                with users[spec].cv:
+                    users[spec].cv.notify_all()
 
 class Agent(Thread):
     class CallbackHandler(Thread):
@@ -139,7 +154,7 @@ class Agent(Thread):
             while True:
                 with users[self.username].cv:
                     if users[self.username].cv.wait(timeout=0.5):
-                        self.sock.send(f"CALLBACK: {users.getmessage(self.username)}".encode())
+                        self.sock.send(users.getmessage(self.username).encode())
                     else:
                         if self.event.is_set():
                             break
@@ -285,10 +300,32 @@ class Agent(Thread):
                             self.sock.send(f"ERROR: No board is open.".encode())
                         except UserAlreadyReady:
                             self.sock.send(f"ERROR: Already ready.".encode())
+                        except UserIsSpectator:
+                            self.sock.send(f"ERROR: You are a spectator.".encode())
 
                 elif cmds[0] in play_commands:
                     try:
-                        users.play(self.username, cmds[0])
+                        if cmds[0] == "teleport":
+                            if len(cmds) != 2:
+                                self.sock.send(f"ERROR: teleport expects 1 argument. Received: {len(cmds) - 1} ".encode())
+                            else:
+                                if not cmds[1].isdigit():
+                                    self.sock.send("ERROR: teleport argument must be an integer index".encode())
+                                else:
+                                    users.play(self.username, cmds[0], newcell=cmds[1])
+                        elif cmds[0] == "pick":
+                            if len(cmds) != 2:
+                                self.sock.send(f"ERROR: pick expects 1 argument. Received: {len(cmds) - 1} ".encode())
+                            else:
+                                if not cmds[1].isdigit():
+                                    self.sock.send("ERROR: pick argument must be an integer index".encode())
+                                else:
+                                    users.play(self.username, cmds[0], pick=cmds[1])
+                        else:
+                            if len(cmds) != 1:
+                                self.sock.send(f"ERROR: {cmds[0]} expects no argument. Received: {len(cmds) - 1} ".encode())
+                            else:
+                                users.play(self.username, cmds[0])
                     except UserNotAttached:
                         self.sock.send(f"ERROR: No board is open.".encode())
                     except NotUsersTurn:
@@ -341,7 +378,7 @@ class Agent(Thread):
 mutex = RLock()
 boards = BoardDict()
 users = UserDict()
-play_commands = ["roll", "end"] # TODO: Adding commands one by one and testing
+play_commands = ["roll", "buy", "upgrade", "teleport", "pick", "end"] # TODO: Adding commands one by one and testing
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

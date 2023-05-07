@@ -79,6 +79,7 @@ class Board:
             data = json.load(f)
         
         self.users = {}
+        self.spectators = {}
         self.gamestarted = False
         self.userslist = [] #list to determine order of turns, set when game starts, sorted to make sure its deterministic
         self.turncounter = 0
@@ -95,6 +96,7 @@ class Board:
 
     def delete(self) -> None:
         self.users.clear()
+        self.spectators.clear()
         self.gamestarted = False
         self.userslist.clear()
         self.turncounter = 0
@@ -130,13 +132,18 @@ class Board:
         # User states are reset since a new game starts with a new input file
         for user in self.users:
             self.users[user].reset()
+        for spec in self.spectators:
+            self.users[spec].reset()
 
     # Since callback and turncb are methods in User class, they are not given to attach seperately
     def attach(self, user: User) -> None:
         if user.username in self.users:
             raise UserExists
         elif self.gamestarted:
-            raise GameAlreadyStarted
+            user.attachedboard = self
+            self.spectators[user.username] = user
+            user.status.isspectator = True
+            #raise GameAlreadyStarted
         else:
             user.attachedboard = self
             self.users[user.username] = user
@@ -147,10 +154,17 @@ class Board:
             user.status.ready = False
 
             del self.users[user.username]
+            user.reset()
 
             if self.gamestarted:
                 self.sendcallbacks(f"{user.username} detached.")
                 self.gameover()
+        elif user.username in self.spectators:
+            user.attachedboard = None
+
+            del self.spectators[user.username]
+            user.reset()
+            
         else:
             raise UserNotFound
     
@@ -481,6 +495,8 @@ class Board:
     def sendcallbacks(self, message: str) -> None:
         for usr in self.users:
             self.users[usr].callback(message)
+        for spec in self.spectators:
+            self.spectators[spec].callback(message)
 
     def sendturncb(self, user: User, message: str) -> None:
         user.turncb(message)

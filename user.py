@@ -26,6 +26,7 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
         self.freeteleport = False
         self.pick = None
         self.propertyop = False
+        self.isspectator = False
 
     def reset(self):
         self.ready = False #ready olunca Truelanacak
@@ -41,6 +42,7 @@ class UserStatus: #userın oyundaki değerlerini tutuyor
         self.freeteleport = False
         self.pick = None
         self.propertyop = False
+        self.isspectator = False
 
     def start_game(self,board):
         self.location_index = 0
