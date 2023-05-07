@@ -133,7 +133,7 @@ class Board:
         for user in self.users:
             self.users[user].reset()
         for spec in self.spectators:
-            self.users[spec].reset()
+            self.spectators[spec].reset()
 
     # Since callback and turncb are methods in User class, they are not given to attach seperately
     def attach(self, user: User) -> None:
@@ -544,7 +544,7 @@ class Board:
         for user in self.users:
             self.users[user].reset()
         for spec in self.spectators:
-            self.users[spec].reset()
+            self.spectators[spec].reset()
         self.delete()
 
     #def __repr__(self) -> str:
