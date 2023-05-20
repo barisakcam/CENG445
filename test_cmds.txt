@@ -1,8 +1,0 @@
-add_board 1 input.json
-add_user kaan kaan@mp kaan_gocmen 12345678
-add_user baris baris@mp baris_akcam 87654321
-attach_user 1 kaan
-attach_user 1 baris
-info_board 1
-ready kaan
-ready baris

@@ -6,6 +6,7 @@ import user
 import auth
 import sqlite3
 import pprint
+import json
 
 class UserAlreadyReady(Exception):
     pass
@@ -118,7 +119,7 @@ class BoardDict:
             res = [{"boardname": name, 
                     "users": [user for user in self.data[name].users], 
                     "spectators": [spectator for spectator in self.data[name].spectators]} for name in self.data]
-        return pprint.pformat(res)
+        return json.dumps(res)
     
     def open(self, name, username):
         with mutex:
@@ -191,6 +192,8 @@ class Agent(Thread):
         request = self.sock.recv(1024)
         while request != b'':
             cmds = parsecommand(request.decode())
+            self.username = cmds[0]
+            cmds = cmds[1:]
             print(self.username, "commanded", cmds)
 
             # quit command is sent when a client terminates connection

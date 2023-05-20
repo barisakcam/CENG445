@@ -1,14 +1,17 @@
-<html>
-    <body>
-        <h1> CENG 445 Student Information System Demo </h1>
-		<div align="right">
-			User: {{ request.user }} 
-			<a href="/accounts/logout?next=/student">Logout</a>
-		</div>
-		<div>
-		{% block "body" %}
-        {% endblock %}
-		</div>
-	<a href="/student">Main page</a>
-    </body>
-</html>
+{% extends "base.html" %}
+{% block "body" %}
+<h2> List of games </h2>
+<p>
+<a href="/board/add">Create new game</a>
+</p>
+<table border="1" cellspacing="0">
+	<tr><th>id</th><th>name</th><th>surname</th><th>Took</th>
+	{% for board in boards %}
+	<tr><td>{{board}}</td><td>{{board}}</td>
+		<td>{{board}} 
+		<td> <a href="/board/detail/{{board}}">details</a>
+		     <a href="/board/update/{{board}}">update</a>
+		     <a href="/board/register/{{board}}">register</a></td></tr>
+ 	{% endfor %}
+</table>
+{% endblock %}

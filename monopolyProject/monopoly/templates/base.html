@@ -1,14 +1,18 @@
 <html>
     <body>
-        <h1> CENG 445 Student Information System Demo </h1>
+        <h1> CENG 445 Online Monopoly Demo </h1>
 		<div align="right">
-			User: {{ request.user }} 
-			<a href="/accounts/logout?next=/student">Logout</a>
+		{% if request.user.is_authenticated %}
+			<p> username: {{ request.user.username }} </p>
+			<p> email: {{ request.user.email }} </p>
+			<p> full name: {{ request.user.full_name }} </p>
+			<a href="{% url 'logout' %}">Logout</a>
+		{% endif %}
 		</div>
 		<div>
-		{% block "body" %}
+		{% block "body" %} 
         {% endblock %}
 		</div>
-	<a href="/student">Main page</a>
+	<!-- <a href="/student">Main page</a> -->
     </body>
 </html>
