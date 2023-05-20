@@ -33,7 +33,8 @@ class Property:
         return "\tproperty:" + "\n\t\tname: " + str(self.name) + "\n\t\tnumber: " + str(self.number) + "\n\t\tcolor: " + str(self.color) + "\n\t\tprice: " + str(self.price) + "\n\t\trents: " + str(self.rents)
     
     def get(self) -> dict:
-        return {"name": self.name, \
+        return {"type": "property", \
+                "name": self.name, \
                 "number": self.number, \
                 "color": self.color, \
                 "price": self.price, \

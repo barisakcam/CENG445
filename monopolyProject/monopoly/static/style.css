@@ -1,0 +1,126 @@
+.board {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    grid-template-rows: repeat(11, 1fr);
+    width: 90%;
+    height: 90%;
+    position: relative;
+    margin: 50px auto;
+}
+.half-cell {
+    background-color: color ;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.brown {
+    background-color: brown;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.lightblue {
+    background-color: lightblue;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.pink {
+    background-color: fuchsia;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.orange {
+    background-color: orange;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.red {
+    background-color: red;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.yellow {
+    background-color: yellow;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.green {
+    background-color: green;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.navy {
+    background-color: navy;
+    width: 100%; /* Adjust the width of the cell as needed */
+    height: 20%; /* Adjust the height of the cell as needed */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.cell {
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+}
+
+.cell:nth-child(2n+1) {
+    transform: rotate(0deg);
+}
+
+.cell:nth-child(2n) {
+    transform: rotate(0deg);
+}
+
+/* Define colors for different cell types */
+.property {
+    background-color: lightgray;
+}
+
+.chance{
+    background-color: orange;
+}
+
+.tax {
+    background-color: red;
+}
+
+.teleport {
+    background-color: purple;
+}
+
+.jail {
+    background-color: brown;
+}
+
+.goto {
+    background-color: brown;
+}
+
+.lottery {
+    background-color: green;
+}

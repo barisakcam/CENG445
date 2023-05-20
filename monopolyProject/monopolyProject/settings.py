@@ -123,3 +123,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'monopoly.User'
+
+STATICROOT = 'static/'
+
+STATICFILES_DIRS = ('static/', )

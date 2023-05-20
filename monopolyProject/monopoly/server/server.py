@@ -118,7 +118,8 @@ class BoardDict:
         with mutex:
             res = [{"boardname": name, 
                     "users": [user for user in self.data[name].users], 
-                    "spectators": [spectator for spectator in self.data[name].spectators]} for name in self.data]
+                    "spectators": [spectator for spectator in self.data[name].spectators],
+                    "gamestarted": self.data[name].gamestarted} for name in self.data]
         return json.dumps(res)
     
     def open(self, name, username):

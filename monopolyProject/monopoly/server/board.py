@@ -515,8 +515,8 @@ class Board:
         return pprint.pformat(self.users[user.username].getstatus())
 
     def getboardstate(self) -> str:
-        return pprint.pformat({"cells": [cell.get() for cell in self.cells],
-                               "users": [username for username in self.users]}, sort_dicts=False)
+        return json.dumps({"cells": [cell.get() for cell in self.cells],
+                           "users": [username for username in self.users]})
     
     def sendcallbacks(self, message: str) -> None:
         for usr in self.users:

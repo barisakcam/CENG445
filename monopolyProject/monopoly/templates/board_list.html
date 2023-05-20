@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block "body" %}
+<h2> List of games </h2>
+<p>
+<a href="/board/add">Create new game</a>
+</p>
+<table border="1" cellspacing="0">
+	<tr><th>Board Name</th><th>Users</th><th>Spectators</th><th>Game Status</th><th> </th>
+	{% for board in boards %}
+	<tr>
+        <td>{{board.boardname}}</td>
+        <td>{{board.users}}</td>
+		<td>{{board.spectators}} </td>
+		{% if board.gamestarted %}
+		<td> Started </td>
+		{% else %}
+		<td> Waiting </td>
+		{% endif %}
+		<td>
+            <a href="/board/{{board.boardname}}">open</a>
+        </td>
+    </tr>
+ 	{% endfor %}
+</table>
+{% endblock %}

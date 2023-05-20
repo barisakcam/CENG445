@@ -19,10 +19,12 @@ def index(request):
     response = s.recv(1024)
     s.close()
 
-    print(response.decode())
-    print(json.loads(response.decode()))
+    context = {}
+    context['boards'] = json.loads(response.decode())
 
-    return render(request,'board.html',{'boards': json.loads(response.decode())})
+    print(context)
+
+    return render(request,'board_list.html', context)
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -103,4 +105,31 @@ def board_add_post(request):
     s.send(f"{request.user.username} new {request.POST['board_name']} ../board_files/{request.FILES['board_file']}".encode())
     s.close()
     
+    return redirect("/home")
+
+@login_required(login_url='/login')
+def board_open(request, boardname):
+    context ={}
+
+    s = socket(AF_INET, SOCK_STREAM)
+    s.connect(('', PHASE2_PORT))
+    #s.send(f"{request.user.username} open {boardname}".encode())
+    #response = s.recv(1024)
+
+    s.send(f"{request.user.username} boardinfo {boardname}".encode())
+    response = s.recv(1024 * 16)
+    
+    context["board_name"] = boardname
+    context["board_status"] = json.loads(response.decode())
+    s.close()
+
+    return render(request, 'board.html', context)
+
+@login_required(login_url='/login')
+def board_close(request, boardname):
+    s = socket(AF_INET, SOCK_STREAM)
+    s.connect(('', PHASE2_PORT))
+    #s.send(f"{request.user.username} close".encode())
+    s.close()
+
     return redirect("/home")

@@ -19,14 +19,16 @@ from django.conf.urls import url, include
 import monopoly.views
 
 urlpatterns = [
-    url('admin/', admin.site.urls),
-    url('home/', monopoly.views.index, name='home'),
-    url('login/', monopoly.views.login_view, name='login'),
-    url('loginpost/', monopoly.views.login_post, name='login_post'),
-    url('register/', monopoly.views.register, name='register'),
-    url('registerpost/', monopoly.views.registerpost, name='registerpost'),
-    url('logout/', monopoly.views.logoutpost, name='logout'),
-    url('board/add/', monopoly.views.board_add_view, name='board_add'),
-    url('board/addpost/', monopoly.views.board_add_post, name='board_add_post'),
+    url(r'admin/', admin.site.urls),
+    url(r'home/$', monopoly.views.index, name='home'),
+    url(r'login/$', monopoly.views.login_view, name='login'),
+    url(r'loginpost/$', monopoly.views.login_post, name='login_post'),
+    url(r'register/$', monopoly.views.register, name='register'),
+    url(r'registerpost/$', monopoly.views.registerpost, name='registerpost'),
+    url(r'logout/$', monopoly.views.logoutpost, name='logout'),
+    url(r'board/add/$', monopoly.views.board_add_view, name='board_add'),
+    url(r'board/addpost/$', monopoly.views.board_add_post, name='board_add_post'),
+    url(r'board/([a-zA-Z0-9]+)/$', monopoly.views.board_open, name='board_open'),
+    url(r'board/([a-zA-Z0-9]+)/close/$', monopoly.views.board_close, name='board_close'),
     #url('accounts/', include('django.contrib.auth.urls')),
 ]
