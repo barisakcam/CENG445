@@ -32,7 +32,7 @@
         "type": "property",
         "name": "nallihan",
         "cell": 6,
-        "color": "blue",
+        "color": "aquamarine",
         "price": 100,
         "rents": [40, 75, 220, 600, 900]
       },
@@ -43,7 +43,7 @@
         "type": "property",
         "name": "ayas",
         "cell": 8,
-        "color": "blue",
+        "color": "aquamarine",
         "price": 100,
         "rents": [40, 75, 220, 600, 900]
       },
@@ -51,7 +51,7 @@
         "type": "property",
         "name": "bala",
         "cell": 9,
-        "color": "blue",
+        "color": "aquamarine",
         "price": 120,
         "rents": [45, 80, 240, 625, 950]
       },
@@ -151,7 +151,7 @@
       },
       {
         "type": "property",
-        "name": "cubuk",
+        "name": "kecioren",
         "cell": 26,
         "color": "yellow",
         "price": 260,
@@ -159,7 +159,7 @@
       },
       {
         "type": "property",
-        "name": "elmadag",
+        "name": "mamak",
         "cell": 27,
         "color": "yellow",
         "price": 260,
@@ -170,7 +170,7 @@
       },
       {
         "type": "property",
-        "name": "beypazari",
+        "name": "sincan",
         "cell": 29,
         "color": "yellow",
         "price": 280,

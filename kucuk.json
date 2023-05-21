@@ -15,22 +15,7 @@
         "rents": [200, 400, 700, 1400, 2000]
       },
       {
-        "type": "goto jail"
-      },
-      {
         "type": "jail"
-      },
-      {
-        "type": "goto jail"
-      },
-      {
-        "type": "jail"
-      },
-      {
-        "type": "tax"
-      },
-      {
-        "type": "chance card"
       },
       {
         "type": "tax"
