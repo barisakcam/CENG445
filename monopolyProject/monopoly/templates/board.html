@@ -1,52 +1,63 @@
 {% extends "base.html" %}
 {% block "body" %}
 
-
+<script type="text/javascript">
+    setTimeout(function(){
+      location = ''
+    }, 5000)
+</script>
+ 
 <h2> Board: {{ board_name }}</h2>
 <a href="/board/{{ board_name }}/close">Close</a>
 <a href="/board/{{ board_name }}/ready">Ready</a>
 
-<div class="board">
-    {% for cell in board_status.cells %}
-        <div class="cell {{ cell.type }}" >
-            {% if cell.type == 'property' %}
-                <div>
-                    <div class="{{ cell.color }}"></div>
-                    <strong>{{ cell.name }}</strong>
-                    <br>{{ cell.price }}<br>
-                </div>
-            {% elif cell.type == 'tax' %}
-                <div>
-                    Tax
-                </div>
-            {% elif cell.type == 'goto jail' %}
-                <div>
-                    Go To Jail
-                </div>
-            {% elif cell.type == 'teleport' %}
-                <div>
-                    Teleport
-                </div>
-            {% elif cell.type == 'jail' %}
-                <div>
-                    Jail
-                </div>
-            {% elif cell.type == 'chance card' %}
-                <div>
-                    Chance
-                </div>
-            {% elif cell.type == 'lottery' %}
-                <div>
-                    Lottery
-                </div>
-            {% elif cell.type == 'start' %}
-                <div>
-                    Start
-                </div>
-            {% endif %}
-        </div>
+<div class="users">
+    {% for user in board_status.users %}
+        <p> {{ user.username }} </p>
+        <p> {{ user.properties }} </p>
+        <p> {{ user.location }} </p>
+        <p> {{ user.money }} </p>
+        <p> {{ user.ready }} </p>
+        <p> {{ user.isplaying }} </p>
     {% endfor %}
 </div>
+<form class="command" method="post">
+    {% csrf_token %} 
+    {{ command_form.as_p }}
+
+    <input type="hidden" name="next" value="{{ next }}" />
+</form>
+<svg class="board" width="800" height="1000">
+    {% for cell in board_status.cells %}
+        {% if cell.type == 'property' %}
+            <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="white", stroke="black", stroke-width=2 ></rect>
+            <rect x="{{ cell.x}}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.ch }}" fill="{{ cell.color }}", stroke="black", stroke-width=1 ></rect>
+            <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">{{ cell.name }}</text>
+            <text x="{{ cell.pricex }}" y="{{ cell.pricey }}" text-anchor="middle" fill="#000000" font-size="14px">{{ cell.price }}$</text>
+        {% elif cell.type == 'tax' %}
+            <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="red", stroke="black", stroke-width=2></rect>
+            <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">TAX</text>
+        {% elif cell.type == 'goto jail' %}
+            <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="brown" , stroke="black", stroke-width=2></rect>
+            <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">GO TO JAIL</text>
+        {% elif cell.type == 'teleport' %}
+            <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="purple", stroke="black", stroke-width=2></rect>
+            <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">TELEPORT</text>
+        {% elif cell.type == 'jail' %}
+            <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="brown", stroke="black", stroke-width=2></rect>
+            <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">JAIL</text>
+        {% elif cell.type == 'chance card' %}
+            <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="orange", stroke="black", stroke-width=2></rect>
+            <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">CHANCE</text>
+        {% elif cell.type == 'lottery' %}
+            <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="green", stroke="black", stroke-width=2></rect>
+            <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">LOTTERY</text>
+        {% elif cell.type == 'start' %}
+            <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="beige", stroke="black", stroke-width=2></rect>
+            <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">START</text>
+        {% endif %}
+    {% endfor %}
+</svg>
 
 
 {% endblock %}

@@ -516,7 +516,7 @@ class Board:
 
     def getboardstate(self) -> str:
         return json.dumps({"cells": [cell.get() for cell in self.cells],
-                           "users": [username for username in self.users]})
+                           "users": [self.users[username].getstatus() for username in self.users]})
     
     def sendcallbacks(self, message: str) -> None:
         for usr in self.users:

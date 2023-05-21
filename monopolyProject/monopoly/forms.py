@@ -18,3 +18,15 @@ class BoardAddForm(forms.Form):
 
     board_name = forms.CharField(max_length=16)
     board_file = forms.FileField()
+
+class CommandForm(forms.Form):
+    
+    choices = (('roll', 'roll'),
+               ('buy', 'buy'),
+               ('upgrade', 'upgrade'),
+               ('teleport', 'teleport'),
+               ('pick', 'pick'),
+               ('bail', 'bail'),
+               ('end', 'end'),)
+
+    command_name = forms.ChoiceField(choices=choices)

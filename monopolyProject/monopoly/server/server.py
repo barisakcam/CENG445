@@ -211,208 +211,196 @@ class Agent(Thread):
 
                 self.username = None
 
-            if self.username is None:
-
-                # login <username> <password>
-                if cmds[0] == "login":
-                    if len(cmds) != 3:
-                        self.sock.send(f"ERROR: login expects 2 arguments. Received: {len(cmds) - 1}".encode())
-                    else:
-                        self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
-                        result = self.cursor.fetchone()
-
-                        if result is None:
-                            self.sock.send(f"ERROR: User {cmds[1]} not found.".encode())
-                        elif users.islogin(cmds[1]):
-                            self.sock.send(f"ERROR: User already logged in.".encode())
-                        elif auth.match(result[2], cmds[2]):
-                            self.username = cmds[1]
-                            users.login(self.username, result[3], result[4])
-                            self.ch = self.CallbackHandler(self.sock, self.username)
-                            self.ch.start()
-                            self.sock.send(f"INFO: Logged in.".encode())
-                        else:
-                            self.sock.send(f"ERROR: Wrong password.".encode())
-
-                # createuser <username> <password> <mail> <fullname>
-                elif cmds[0] == "createuser":
-                    if len(cmds) != 5:
-                        self.sock.send(f"ERROR: createuser expects 4 arguments. Received: {len(cmds) - 1}".encode())
-                    else:
-                        self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
-                        result = self.cursor.fetchone()
-
-                        if result is None:
-                            self.cursor.execute("INSERT INTO userdata (username, password, email, fullname) VALUES (? , ?, ?, ?)", (cmds[1], auth.hash(cmds[2]), cmds[3], cmds[4]))
-                            self.connection.commit()
-                            self.sock.send(f"INFO: User created.".encode())
-                        else:
-                            self.sock.send(f"ERROR: User already exists.".encode())
-                
+            # login <username> <password>
+            if cmds[0] == "login":
+                if len(cmds) != 3:
+                    self.sock.send(f"ERROR: login expects 2 arguments. Received: {len(cmds) - 1}".encode())
                 else:
-                    self.sock.send(f"ERROR: Command not found.".encode())
+                    #self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
+                    #result = self.cursor.fetchone()
 
-            else:
+                    if users.islogin(cmds[1]):
+                        self.sock.send(f"ERROR: User already logged in.".encode())
+                    else:
+                        users.login(self.username, "", "")
+                        self.ch = self.CallbackHandler(self.sock, self.username)
+                        self.ch.start()
+                        self.sock.send(f"INFO: Logged in.".encode())
 
-                # logout
-                if cmds[0] == "logout":
+            # createuser <username> <password> <mail> <fullname>
+            elif cmds[0] == "createuser":
+                if len(cmds) != 5:
+                    self.sock.send(f"ERROR: createuser expects 4 arguments. Received: {len(cmds) - 1}".encode())
+                else:
+                    self.cursor.execute("SELECT * FROM userdata WHERE username = ?", (cmds[1],))
+                    result = self.cursor.fetchone()
+
+                    if result is None:
+                        self.cursor.execute("INSERT INTO userdata (username, password, email, fullname) VALUES (? , ?, ?, ?)", (cmds[1], auth.hash(cmds[2]), cmds[3], cmds[4]))
+                        self.connection.commit()
+                        self.sock.send(f"INFO: User created.".encode())
+                    else:
+                        self.sock.send(f"ERROR: User already exists.".encode())
+
+            # logout
+            elif cmds[0] == "logout":
+                if users.isattached(self.username):
+                    boards.close(self.username)
+                    self.sock.send(f"INFO: Closed board.".encode())
+
+                self.ch.event.set()
+                self.ch.join()
+
+                users.logout(self.username)
+
+                self.username = None
+                self.sock.send(f"INFO: Logged out.".encode())
+
+            # new <boardname> <file>
+            elif cmds[0] == "new":
+                if len(cmds) != 3:
+                    self.sock.send(f"ERROR: new expects 2 arguments. Received: {len(cmds) - 1}".encode())
+                else:
+                    try:
+                        boards.new(cmds[1], cmds[2])
+                        self.sock.send(f"INFO: Board created.".encode())
+                    except FileNotFoundError:
+                        self.sock.send(f"ERROR: Input file not found.".encode())
+
+            # list
+            elif cmds[0] == "list":
+                if len(cmds) != 1:
+                    self.sock.send(f"ERROR: list expects no arguments. Received: {len(cmds) - 1} ".encode())
+                else:
+                    #self.sock.send("\n".join(boards.list()).encode())
+                    self.sock.send(boards.list().encode())
+
+            # open <boardname> 
+            elif cmds[0] == "open":
+                if len(cmds) != 2:
+                    self.sock.send(f"ERROR: open expects 1 arguments. Received: {len(cmds) - 1} ".encode())
+                else:
                     if users.isattached(self.username):
                         boards.close(self.username)
                         self.sock.send(f"INFO: Closed board.".encode())
 
-                    self.ch.event.set()
-                    self.ch.join()
-
-                    users.logout(self.username)
-
-                    self.username = None
-                    self.sock.send(f"INFO: Logged out.".encode())
-
-                # new <boardname> <file>
-                elif cmds[0] == "new":
-                    if len(cmds) != 3:
-                        self.sock.send(f"ERROR: new expects 2 arguments. Received: {len(cmds) - 1}".encode())
+                    if boards.open(cmds[1], self.username):
+                        self.sock.send(f"INFO: Opened board {cmds[1]}.".encode())
                     else:
-                        try:
-                            boards.new(cmds[1], cmds[2])
-                            self.sock.send(f"INFO: Board created.".encode())
-                        except FileNotFoundError:
-                            self.sock.send(f"ERROR: Input file not found.".encode())
+                        self.sock.send(f"ERROR: Board not found.".encode())
 
-                # list
-                elif cmds[0] == "list":
-                    if len(cmds) != 1:
-                        self.sock.send(f"ERROR: list expects no arguments. Received: {len(cmds) - 1} ".encode())
-                    else:
-                        #self.sock.send("\n".join(boards.list()).encode())
-                        self.sock.send(boards.list().encode())
-
-                # open <boardname> 
-                elif cmds[0] == "open":
-                    if len(cmds) != 2:
-                        self.sock.send(f"ERROR: open expects 1 arguments. Received: {len(cmds) - 1} ".encode())
-                    else:
-                        if users.isattached(self.username):
-                            boards.close(self.username)
-                            self.sock.send(f"INFO: Closed board.".encode())
-
-                        if boards.open(cmds[1], self.username):
-                            self.sock.send(f"INFO: Opened board {cmds[1]}.".encode())
-                        else:
-                            self.sock.send(f"ERROR: Board not found.".encode())
-
-                # close
-                elif cmds[0] == "close":
-                    if len(cmds) != 1:
-                        self.sock.send(f"ERROR: open expects no arguments. Received: {len(cmds) - 1} ".encode())
-                    else:
-                        try:
-                            boards.close(self.username)
-                            self.sock.send(f"INFO: Closed board.".encode())
-                        except UserNotAttached: # TODO: Convert others to exceptions too
-                            self.sock.send(f"ERROR: No board is open.".encode())
-
-                # ready
-                elif cmds[0] == "ready":
-                    if len(cmds) != 1:
-                        self.sock.send(f"ERROR: ready expects no arguments. Received: {len(cmds) - 1} ".encode())
-                    else:
-                        try:
-                            boards.ready(self.username)
-                            self.sock.send(f"INFO: Ready".encode())
-                            boards.notify(self.username)
-                        except UserNotAttached:
-                            self.sock.send(f"ERROR: No board is open.".encode())
-                        except UserAlreadyReady:
-                            self.sock.send(f"ERROR: Already ready.".encode())
-                        except UserIsSpectator:
-                            self.sock.send(f"ERROR: You are a spectator.".encode())
-
-                # <playcommand> [newcell | pick]
-                elif cmds[0] in play_commands:
+            # close
+            elif cmds[0] == "close":
+                if len(cmds) != 1:
+                    self.sock.send(f"ERROR: open expects no arguments. Received: {len(cmds) - 1} ".encode())
+                else:
                     try:
-                        if cmds[0] == "teleport":
-                            if len(cmds) != 2:
-                                self.sock.send(f"ERROR: teleport expects 1 argument. Received: {len(cmds) - 1} ".encode())
-                            else:
-                                if not cmds[1].isdigit():
-                                    self.sock.send("ERROR: teleport argument must be an integer index".encode())
-                                else:
-                                    users.play(self.username, cmds[0], newcell=cmds[1])
-                        elif cmds[0] == "pick":
-                            if len(cmds) != 2:
-                                self.sock.send(f"ERROR: pick expects 1 argument. Received: {len(cmds) - 1} ".encode())
-                            else:
-                                if not cmds[1].isdigit():
-                                    self.sock.send("ERROR: pick argument must be an integer index".encode())
-                                else:
-                                    users.play(self.username, cmds[0], pick=cmds[1])
-                        else:
-                            if len(cmds) != 1:
-                                self.sock.send(f"ERROR: {cmds[0]} expects no argument. Received: {len(cmds) - 1} ".encode())
-                            else:
-                                users.play(self.username, cmds[0])
-                        
+                        boards.close(self.username)
+                        self.sock.send(f"INFO: Closed board.".encode())
+                    except UserNotAttached: # TODO: Convert others to exceptions too
+                        self.sock.send(f"ERROR: No board is open.".encode())
+
+            # ready
+            elif cmds[0] == "ready":
+                if len(cmds) != 1:
+                    self.sock.send(f"ERROR: ready expects no arguments. Received: {len(cmds) - 1} ".encode())
+                else:
+                    try:
+                        boards.ready(self.username)
+                        self.sock.send(f"INFO: Ready".encode())
                         boards.notify(self.username)
                     except UserNotAttached:
                         self.sock.send(f"ERROR: No board is open.".encode())
-                    except NotUsersTurn:
-                        self.sock.send(f"ERROR: Not your turn or game is not started yet.".encode())
-                    except board.GameCommandNotFound:
-                        self.sock.send("ERROR: Game command not found".encode())
-                    except board.AlreadyRolled:
-                        self.sock.send("ERROR: User already rolled".encode())
-                    except board.NotRolled:
-                        self.sock.send("ERROR: User not rolled yet".encode())
-                    except board.NotProperty:
-                        self.sock.send("ERROR: Not a property".encode())
-                    except board.PropertyOwned:
-                        self.sock.send("ERROR: Property is already owned".encode())
-                    except board.PropertyNotOwned:
-                        self.sock.send("ERROR: Property is not owned by user".encode())
-                    except board.PropertyMaxLevel:
-                        self.sock.send("ERROR: Property is already level 5".encode())
-                    except board.NotEnoughMoney:
-                        self.sock.send("ERROR: Not enough money".encode())
-                    except board.NotJail:
-                        self.sock.send("ERROR: Not in jail".encode())
-                    except board.NotTeleport:
-                        self.sock.send("ERROR: Not in teleport".encode())
-                    except board.InsufficientArguments:
-                        self.sock.send("ERROR: There are insufficient arguments for the command".encode())
-                    except board.MustPick:
-                        self.sock.send("ERROR: Must pick a property".encode())
-                    except board.MustTeleport:
-                        self.sock.send("ERROR: Must teleport".encode())
-                    except board.InvalidTeleport:
-                        self.sock.send("ERROR: Teleport is limited to property cells".encode())
-                    except board.CellIndexError:
-                        self.sock.send("ERROR: Given cell index is out of range".encode())
-                    except board.PropertyOp:
-                        self.sock.send("ERROR: Only one property operation can be done in a turn".encode())
-                    except board.PickError:
-                        self.sock.send("ERROR: No need to pick a property".encode())
+                    except UserAlreadyReady:
+                        self.sock.send(f"ERROR: Already ready.".encode())
+                    except UserIsSpectator:
+                        self.sock.send(f"ERROR: You are a spectator.".encode())
 
-                # userinfo <username>
-                elif cmds[0] == "userinfo":
-                    try:
-                        self.sock.send(users.getstatus(cmds[1]).encode())
-                    except UserDoesNotExist:
-                        self.sock.send("ERROR: User does not exist.".encode())
-                    except IndexError:
-                        self.sock.send("ERROR: User name is expected.".encode())
+            # <playcommand> [newcell | pick]
+            elif cmds[0] in play_commands:
+                try:
+                    if cmds[0] == "teleport":
+                        if len(cmds) != 2:
+                            self.sock.send(f"ERROR: teleport expects 1 argument. Received: {len(cmds) - 1} ".encode())
+                        else:
+                            if not cmds[1].isdigit():
+                                self.sock.send("ERROR: teleport argument must be an integer index".encode())
+                            else:
+                                users.play(self.username, cmds[0], newcell=cmds[1])
+                    elif cmds[0] == "pick":
+                        if len(cmds) != 2:
+                            self.sock.send(f"ERROR: pick expects 1 argument. Received: {len(cmds) - 1} ".encode())
+                        else:
+                            if not cmds[1].isdigit():
+                                self.sock.send("ERROR: pick argument must be an integer index".encode())
+                            else:
+                                users.play(self.username, cmds[0], pick=cmds[1])
+                    else:
+                        if len(cmds) != 1:
+                            self.sock.send(f"ERROR: {cmds[0]} expects no argument. Received: {len(cmds) - 1} ".encode())
+                        else:
+                            users.play(self.username, cmds[0])
+                    
+                    boards.notify(self.username)
+                except UserNotAttached:
+                    self.sock.send(f"ERROR: No board is open.".encode())
+                except NotUsersTurn:
+                    self.sock.send(f"ERROR: Not your turn or game is not started yet.".encode())
+                except board.GameCommandNotFound:
+                    self.sock.send("ERROR: Game command not found".encode())
+                except board.AlreadyRolled:
+                    self.sock.send("ERROR: User already rolled".encode())
+                except board.NotRolled:
+                    self.sock.send("ERROR: User not rolled yet".encode())
+                except board.NotProperty:
+                    self.sock.send("ERROR: Not a property".encode())
+                except board.PropertyOwned:
+                    self.sock.send("ERROR: Property is already owned".encode())
+                except board.PropertyNotOwned:
+                    self.sock.send("ERROR: Property is not owned by user".encode())
+                except board.PropertyMaxLevel:
+                    self.sock.send("ERROR: Property is already level 5".encode())
+                except board.NotEnoughMoney:
+                    self.sock.send("ERROR: Not enough money".encode())
+                except board.NotJail:
+                    self.sock.send("ERROR: Not in jail".encode())
+                except board.NotTeleport:
+                    self.sock.send("ERROR: Not in teleport".encode())
+                except board.InsufficientArguments:
+                    self.sock.send("ERROR: There are insufficient arguments for the command".encode())
+                except board.MustPick:
+                    self.sock.send("ERROR: Must pick a property".encode())
+                except board.MustTeleport:
+                    self.sock.send("ERROR: Must teleport".encode())
+                except board.InvalidTeleport:
+                    self.sock.send("ERROR: Teleport is limited to property cells".encode())
+                except board.CellIndexError:
+                    self.sock.send("ERROR: Given cell index is out of range".encode())
+                except board.PropertyOp:
+                    self.sock.send("ERROR: Only one property operation can be done in a turn".encode())
+                except board.PickError:
+                    self.sock.send("ERROR: No need to pick a property".encode())
 
-                # boardinfo <boardname>
-                elif cmds[0] == "boardinfo":
-                    try:
-                        self.sock.send(boards.getstatus(cmds[1]).encode())
-                    except BoardDoesNotExist:
-                        self.sock.send("ERROR: Board does not exist.".encode())
-                    except IndexError:
-                        self.sock.send("ERROR: Board name is expected.".encode())
+            # userinfo <username>
+            elif cmds[0] == "userinfo":
+                try:
+                    self.sock.send(users.getstatus(cmds[1]).encode())
+                except UserDoesNotExist:
+                    self.sock.send("ERROR: User does not exist.".encode())
+                except IndexError:
+                    self.sock.send("ERROR: User name is expected.".encode())
 
-                else:
-                    self.sock.send(f"ERROR: Command not found.".encode())      
+            # boardinfo <boardname>
+            elif cmds[0] == "boardinfo":
+                try:
+                    self.sock.send(boards.getstatus(cmds[1]).encode())
+                except BoardDoesNotExist:
+                    self.sock.send("ERROR: Board does not exist.".encode())
+                except IndexError:
+                    self.sock.send("ERROR: Board name is expected.".encode())
+
+            else:
+                self.sock.send(f"ERROR: Command not found.".encode())      
 
             request = self.sock.recv(1024)
 

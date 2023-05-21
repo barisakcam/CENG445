@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.conf.urls import url, include
+from django.shortcuts import redirect
 
 import monopoly.views
 
 urlpatterns = [
     url(r'admin/', admin.site.urls),
+    url(r'$', lambda _: redirect('/home')),
     url(r'home/$', monopoly.views.index, name='home'),
     url(r'login/$', monopoly.views.login_view, name='login'),
     url(r'loginpost/$', monopoly.views.login_post, name='login_post'),
@@ -28,7 +30,10 @@ urlpatterns = [
     url(r'logout/$', monopoly.views.logoutpost, name='logout'),
     url(r'board/add/$', monopoly.views.board_add_view, name='board_add'),
     url(r'board/addpost/$', monopoly.views.board_add_post, name='board_add_post'),
-    url(r'board/([a-zA-Z0-9]+)/$', monopoly.views.board_open, name='board_open'),
+    url(r'board/([a-zA-Z0-9]+)/$', monopoly.views.board_view, name='board_view'),
+    url(r'board/([a-zA-Z0-9]+)/open$', monopoly.views.board_open, name='board_open'),
     url(r'board/([a-zA-Z0-9]+)/close/$', monopoly.views.board_close, name='board_close'),
+    url(r'board/([a-zA-Z0-9]+)/ready/$', monopoly.views.board_ready, name='board_ready'),
+    url(r'board/([a-zA-Z0-9]+)/command/$', monopoly.views.board_command, name='board_command'),
     #url('accounts/', include('django.contrib.auth.urls')),
 ]
