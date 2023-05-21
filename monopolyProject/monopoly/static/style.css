@@ -124,3 +124,27 @@
 .lottery {
     background-color: green;
 }
+
+div.excerpt p {
+    word-wrap: break-word;
+}
+
+.users {
+    overflow-x: scroll;
+}
+
+.user {
+    width:200px;
+    border: solid;
+    border-color: black;
+    float: left;
+}
+
+.gamelog {
+    overflow-y: scroll;
+    height:200px;
+    border: solid;
+    border-color: black;
+    display: flex;
+    flex-direction: column-reverse; /*NOT WORKING!!!*/
+}

@@ -1,32 +1,42 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block "body" %}
 
 <script type="text/javascript">
     setTimeout(function(){
       location = ''
-    }, 5000)
+    }, 60000)
 </script>
  
 <h2> Board: {{ board_name }}</h2>
 <a href="/board/{{ board_name }}/close">Close</a>
 <a href="/board/{{ board_name }}/ready">Ready</a>
+<a href="/board/{{ board_name }}/refresh">Refresh</a>
 
 <div class="users">
     {% for user in board_status.users %}
-        <p> {{ user.username }} </p>
-        <p> {{ user.properties }} </p>
-        <p> {{ user.location }} </p>
-        <p> {{ user.money }} </p>
-        <p> {{ user.ready }} </p>
-        <p> {{ user.isplaying }} </p>
+    <div class="user">
+        <p> <b>Username:</b> {{ user.username }} </p>
+        <p> <b>Properties:</b> {{ user.properties }} </p>
+        <p> <b>Location:</b> {{ user.location }} </p>
+        <p> <b>Money:</b> {{ user.money }} </p>
+        <p> <b>Ready:</b> {{ user.ready }} </p>
+        <p> <b>Turn:</b> {{ user.isplaying }} </p>
+    </div>
     {% endfor %}
 </div>
-<form class="command" method="post">
+<form class="command" method="post" action="/board/{{ board_name }}/command/" >
     {% csrf_token %} 
     {{ command_form.as_p }}
 
+    <input type="submit" value="{% trans 'Send' %}" />
     <input type="hidden" name="next" value="{{ next }}" />
 </form>
+<div class="gamelog">
+    {% for line in game_log %}
+        <p> {{ line.0 }} </p>
+    {% endfor %}
+</div>
 <svg class="board" width="800" height="1000">
     {% for cell in board_status.cells %}
         {% if cell.type == 'property' %}

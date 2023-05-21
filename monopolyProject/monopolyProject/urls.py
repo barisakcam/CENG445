@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'board/([a-zA-Z0-9]+)/open$', monopoly.views.board_open, name='board_open'),
     url(r'board/([a-zA-Z0-9]+)/close/$', monopoly.views.board_close, name='board_close'),
     url(r'board/([a-zA-Z0-9]+)/ready/$', monopoly.views.board_ready, name='board_ready'),
+    url(r'board/([a-zA-Z0-9]+)/refresh/$', monopoly.views.board_refresh, name='board_refresh'),
     url(r'board/([a-zA-Z0-9]+)/command/$', monopoly.views.board_command, name='board_command'),
     #url('accounts/', include('django.contrib.auth.urls')),
 ]

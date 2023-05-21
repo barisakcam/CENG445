@@ -11,22 +11,25 @@ from .models import User
 
 PHASE2_PORT = 1233
 sockets = {}
+gamelogs = {}
 
-def socket_send(username, message):
+def socket_send(username, message, receive=False):
     if username not in sockets:
         sockets[username] = socket(AF_INET, SOCK_STREAM)
         sockets[username].connect(('', PHASE2_PORT))
 
     s = sockets[username]
     s.send(message.encode())
-    response = s.recv(1024 * 16)
-    return response
+
+    if receive:
+        response = s.recv(1024 * 16)
+        return response
 
 def cell_position(context,num):
     WIDTH = 1000
     HEIGHT = 800
     rows = (0,0,0,0)
-    print(num)
+    #print(num)
     if num>=8:
         if num%4 == 0:
             rows = (num//4,num//4,num//4,num//4)
@@ -39,7 +42,7 @@ def cell_position(context,num):
     else:
         rows = (0,num,0,0)
 
-    print(rows)
+    #print(rows)
     x = num*[0]
     y = num*[0]
 
@@ -82,8 +85,8 @@ def cell_position(context,num):
 
 @login_required(login_url='/login')
 def index(request):
-    response = socket_send(request.user.username, f"{request.user.username} list")
-
+    response = socket_send(request.user.username, f"{request.user.username} list", True)
+    
     context = {}
     context['boards'] = json.loads(response.decode())
 
@@ -146,7 +149,7 @@ def registerpost(request):
 def logoutpost(request):
 
     if request.user.username in sockets:
-        response = socket_send(request.user.username, f"{request.user.username} logout")
+        socket_send(request.user.username, f"{request.user.username} logout")
         sockets[request.user.username].close()
         del sockets[request.user.username]
     
@@ -168,50 +171,60 @@ def board_add_post(request):
         for chunk in request.FILES['board_file'].chunks():
             destination.write(chunk)
 
-    socket_send(request.user.username, f"{request.user.username} new {request.POST['board_name']} ../board_files/{request.FILES['board_file']}")
-    
+    response = socket_send(request.user.username, f"{request.user.username} new {request.POST['board_name']} ../board_files/{request.FILES['board_file']}", True)
+    gamelogs[request.POST['board_name']] = []
+
     return redirect("/home")
 
 @login_required(login_url='/login')
 def board_view(request, boardname):
     context ={}
 
-    response = socket_send(request.user.username, f"{request.user.username} login {request.user.username} 0")
-    response = socket_send(request.user.username, f"{request.user.username} boardinfo {boardname}")
-    
+    response = socket_send(request.user.username, f"{request.user.username} login {request.user.username} 0", True)
+    response = socket_send(request.user.username, f"{request.user.username} boardinfo {boardname}", True)
+
+    print("HELLPPP")
+    print(gamelogs)
+
     context["board_name"] = boardname
     context["board_status"] = json.loads(response.decode())
     context["command_form"] = CommandForm()
+    context["game_log"] = gamelogs[boardname]
 
     context = cell_position(context, len(context["board_status"]["cells"]))
 
-    print(context["board_status"])
     return render(request, 'board.html', context)
 
 
 @login_required(login_url='/login')
 def board_open(request, boardname):
-    response = socket_send(request.user.username, f"{request.user.username} login {request.user.username} 0")
-    response = socket_send(request.user.username, f"{request.user.username} close") # to make browser back button work
-    response = socket_send(request.user.username, f"{request.user.username} open {boardname}")
+    response = socket_send(request.user.username, f"{request.user.username} login {request.user.username} 0", True)
+    response = socket_send(request.user.username, f"{request.user.username} close", True) # to make browser back button work
+    response = socket_send(request.user.username, f"{request.user.username} open {boardname}", True)
 
     return redirect(f"/board/{boardname}/")
 
 @login_required(login_url='/login')
 def board_close(request, boardname):
-    response = socket_send(request.user.username, f"{request.user.username} close")
+    response = socket_send(request.user.username, f"{request.user.username} close", True)
 
     return redirect("/home")
 
 @login_required(login_url='/login')
 def board_ready(request, boardname):
-    response = socket_send(request.user.username, f"{request.user.username} ready")
+    response = socket_send(request.user.username, f"{request.user.username} ready", True)
 
     return redirect(f"/board/{boardname}/")
 
 @login_required(login_url='/login')
-def board_command(request, boardname):
-    print(request.POST)
-    #response = socket_send(request.user.username, f"{request.user.username} ready")
+def board_refresh(request, boardname):
+    return redirect(f"/board/{boardname}/")
 
+@login_required(login_url='/login')
+def board_command(request, boardname):
+    response = socket_send(request.user.username, f"{request.user.username} {request.POST['command_name']}", True)
+    gamelogs[boardname].append(response.decode().split('\n'))
+    print(response.decode())
+    print(response.decode().split('\n'))
+    print(gamelogs[boardname])
     return redirect(f"/board/{boardname}/")

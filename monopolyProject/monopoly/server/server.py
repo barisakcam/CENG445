@@ -176,6 +176,7 @@ class Agent(Thread):
             while True:
                 with users[self.username].cv:
                     if users[self.username].cv.wait(timeout=0.5):
+                        continue
                         self.sock.send(users.getmessage(self.username).encode())
                     else:
                         if self.event.is_set():
@@ -212,7 +213,7 @@ class Agent(Thread):
                 self.username = None
 
             # login <username> <password>
-            if cmds[0] == "login":
+            elif cmds[0] == "login":
                 if len(cmds) != 3:
                     self.sock.send(f"ERROR: login expects 2 arguments. Received: {len(cmds) - 1}".encode())
                 else:
@@ -340,6 +341,8 @@ class Agent(Thread):
                             self.sock.send(f"ERROR: {cmds[0]} expects no argument. Received: {len(cmds) - 1} ".encode())
                         else:
                             users.play(self.username, cmds[0])
+                            with users[self.username].cv:
+                                self.sock.send(users.getmessage(self.username).encode())
                     
                     boards.notify(self.username)
                 except UserNotAttached:
