@@ -86,6 +86,7 @@ class Board:
 
         self.cells = [Cell(i) for i in data["cells"]]
         self.chance = data["chances"]
+        random.shuffle(self.chance)
         self.chance_index = 0
         self.startup = data["startup"]
         self.upgrade = data["upgrade"]
