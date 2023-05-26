@@ -55,7 +55,10 @@
             <rect x="{{ cell.x}}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.ch }}" fill="{{ cell.color }}", stroke="black", stroke-width=1 ></rect>
             <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">{{ cell.name }}</text>
             <text x="{{ cell.pricex }}" y="{{ cell.pricey }}" text-anchor="middle" fill="#000000" font-size="14px">{{ cell.price }}$</text>
-            <text x="{{ cell.levelx }}" y="{{ cell.levely }}" text-anchor="middle" fill="#000000" font-size="10px">{{ cell.level }}</text>
+            {% if cell.owner %}
+                <text x="{{ cell.ownerx }}" y="{{ cell.ownery }}" text-anchor="middle" fill="#000000" font-size="10px">{{ cell.owner }}</text>
+                <text x="{{ cell.levelx }}" y="{{ cell.levely }}" text-anchor="middle" fill="#000000" font-size="10px">{{ cell.level }}</text>
+            {% endif %}
         {% elif cell.type == 'tax' %}
             <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="red", stroke="black", stroke-width=2></rect>
             <text x="{{ cell.namex }}" y="{{ cell.namey }}" text-anchor="middle" fill="#000000" font-size="14px">TAX</text>
