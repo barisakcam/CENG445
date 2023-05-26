@@ -19,3 +19,11 @@ server.py: TCP server application. Handles TCP requests and creates threads hand
 client.py: TCP client application. User connect to server using client application.
 
 demo.py is no longer used
+
+# ====== PHASE 3 ====== #
+Django project "monopolyProject" added. To run, run following commands in separate terminals:
+
+python3 ./monopolyProject/monopoly/server/server.py --port 1234
+python3 ./monopolyProject/manage.py runserver
+
+Use "localhost:8000" to access Django server.
