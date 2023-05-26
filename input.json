@@ -106,7 +106,8 @@
         "rents": [80, 150, 375, 800, 1250]
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 17
       },
       {
         "type": "property",

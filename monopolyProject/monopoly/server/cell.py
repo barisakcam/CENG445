@@ -2,8 +2,9 @@ class Cell:
 
     def __init__(self, cell_info) -> None:
         self.type = cell_info["type"]
+        self.number = cell_info["cell"]
         if self.type == "property":
-            self.property = Property(cell_info)
+            self.property = Property(cell_info, self.number)
     
     def __repr__(self) -> str:
         if self.type == "property":
@@ -14,12 +15,12 @@ class Cell:
         if self.type == "property":
             return self.property.get()
         else:
-            return {"type": self.type}
+            return {"type": self.type, "number": self.number}
 
 class Property:
-    def __init__(self, cell_info):
+    def __init__(self, cell_info, number):
         self.name = cell_info["name"]
-        self.number = cell_info["cell"]
+        self.number = number
         self.color = cell_info["color"]
         self.price = cell_info["price"]
         self.rents = cell_info["rents"]
