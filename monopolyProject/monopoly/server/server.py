@@ -170,12 +170,14 @@ class Agent(Thread):
             self.sock = sock
             self.username = username
             self.event = Event()
+            self.gamelog = ["Game logs"]
             Thread.__init__(self)
 
         def run(self):
             while True:
                 with users[self.username].cv:
                     if users[self.username].cv.wait(timeout=0.5):
+                        self.gamelog.append(users.getmessage(self.username))
                         continue
                         self.sock.send(users.getmessage(self.username).encode())
                     else:
@@ -185,6 +187,7 @@ class Agent(Thread):
     def __init__(self, sock: socket):
         self.username = None
         self.sock = sock
+        self.ch = None
         Thread.__init__(self)
 
     def run(self):
@@ -328,6 +331,7 @@ class Agent(Thread):
                                 self.sock.send("ERROR: teleport argument must be an integer index".encode())
                             else:
                                 users.play(self.username, cmds[0], newcell=cmds[1])
+                                self.sock.send("SUCCESS".encode())
                     elif cmds[0] == "pick":
                         if len(cmds) != 2:
                             self.sock.send(f"ERROR: pick expects 1 argument. Received: {len(cmds) - 1} ".encode())
@@ -336,13 +340,15 @@ class Agent(Thread):
                                 self.sock.send("ERROR: pick argument must be an integer index".encode())
                             else:
                                 users.play(self.username, cmds[0], pick=cmds[1])
+                                self.sock.send("SUCCESS".encode())
                     else:
                         if len(cmds) != 1:
                             self.sock.send(f"ERROR: {cmds[0]} expects no argument. Received: {len(cmds) - 1} ".encode())
                         else:
                             users.play(self.username, cmds[0])
-                            with users[self.username].cv:
-                                self.sock.send(users.getmessage(self.username).encode())
+                            self.sock.send("SUCCESS".encode())
+                            #with users[self.username].cv:
+                            #    self.sock.send(users.getmessage(self.username).encode())
                     
                     boards.notify(self.username)
                 except UserNotAttached:
@@ -402,11 +408,22 @@ class Agent(Thread):
                 except IndexError:
                     self.sock.send("ERROR: Board name is expected.".encode())
 
+            # gamelog
+            elif cmds[0] == "gamelog":
+                if self.ch is not None:
+                    self.sock.send("\n".join(self.ch.gamelog).encode())
+                    print("\n".join(self.ch.gamelog))
+                else:
+                    self.ch = self.CallbackHandler(self.sock, self.username) # Django server reset fix
+                    self.ch.start()
+                    self.sock.send("\n".join(self.ch.gamelog).encode())
+                    print("\n".join(self.ch.gamelog))
+
             else:
                 self.sock.send(f"ERROR: Command not found.".encode())      
 
             request = self.sock.recv(1024)
-
+       
         print("Agent shutdown.") # For DEBUG
 
 

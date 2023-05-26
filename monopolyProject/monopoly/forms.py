@@ -28,5 +28,7 @@ class CommandForm(forms.Form):
                ('pick', 'pick'),
                ('bail', 'bail'),
                ('end', 'end'),)
-
+    
     command_name = forms.ChoiceField(choices=choices)
+
+    command_argument = forms.CharField(widget=forms.NumberInput(), required=False)

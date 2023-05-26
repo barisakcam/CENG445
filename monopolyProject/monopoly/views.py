@@ -9,9 +9,9 @@ from django.contrib.auth import authenticate, login, logout
 from .forms import *
 from .models import User
 
-PHASE2_PORT = 1233
+PHASE2_PORT = 1234
 sockets = {}
-gamelogs = {}
+errorlogs = {}
 
 def socket_send(username, message, receive=False):
     if username not in sockets:
@@ -81,6 +81,14 @@ def cell_position(context,num):
         context["board_status"]["cells"][i]["pricex"] = int(x[i] + WIDTH/(rows[1]+1)/2)
         context["board_status"]["cells"][i]["pricey"] = int(y[i]/3 + 2*(y[i] + HEIGHT/(rows[0]+1))/3)
         context["board_status"]["cells"][i]["ch"] = int(HEIGHT/(rows[0]+1)/2.25)
+        context["board_status"]["cells"][i]["userx"] = int(x[i]) + int(WIDTH/(rows[1]+1))/4
+        context["board_status"]["cells"][i]["usery"] = int(y[i]/4 + 3*(y[i] + HEIGHT/(rows[0]+1))/4)
+        context["board_status"]["cells"][i]["userh"] = int(HEIGHT/(rows[0]+1))/4
+        context["board_status"]["cells"][i]["userw"] = int(WIDTH/(rows[1]+1))/2
+        context["board_status"]["cells"][i]["tagx"] = int(x[i]) + int(WIDTH/(rows[1]+1))/2
+        context["board_status"]["cells"][i]["tagy"] = int(y[i]) + 7*int(HEIGHT/(rows[0]+1))/8
+        context["board_status"]["cells"][i]["levelx"] = int(x[i]) + 5*int(WIDTH/(rows[1]+1))/6
+        context["board_status"]["cells"][i]["levely"] = int(y[i]) + int(HEIGHT/(rows[0]+1))/6
     return context
 
 @login_required(login_url='/login')
@@ -172,7 +180,7 @@ def board_add_post(request):
             destination.write(chunk)
 
     response = socket_send(request.user.username, f"{request.user.username} new {request.POST['board_name']} ../board_files/{request.FILES['board_file']}", True)
-    gamelogs[request.POST['board_name']] = []
+    errorlogs[request.POST['board_name']] = []
 
     return redirect("/home")
 
@@ -183,18 +191,21 @@ def board_view(request, boardname):
     response = socket_send(request.user.username, f"{request.user.username} login {request.user.username} 0", True)
     response = socket_send(request.user.username, f"{request.user.username} boardinfo {boardname}", True)
 
-    print("HELLPPP")
-    print(gamelogs)
-
     context["board_name"] = boardname
     context["board_status"] = json.loads(response.decode())
+    print(context["board_status"])
     context["command_form"] = CommandForm()
-    context["game_log"] = gamelogs[boardname]
+
+    if boardname not in errorlogs:
+        errorlogs[boardname] = []
+
+    response = socket_send(request.user.username, f"{request.user.username} gamelog", True)
+    context["game_log"] = response.decode().split("\n")
+    context["error_log"] = errorlogs[boardname]
 
     context = cell_position(context, len(context["board_status"]["cells"]))
 
     return render(request, 'board.html', context)
-
 
 @login_required(login_url='/login')
 def board_open(request, boardname):
@@ -222,9 +233,17 @@ def board_refresh(request, boardname):
 
 @login_required(login_url='/login')
 def board_command(request, boardname):
-    response = socket_send(request.user.username, f"{request.user.username} {request.POST['command_name']}", True)
-    gamelogs[boardname].append(response.decode().split('\n'))
-    print(response.decode())
-    print(response.decode().split('\n'))
-    print(gamelogs[boardname])
+    if request.POST['command_name'] == "teleport" or request.POST['command_name'] == "pick":
+        response = socket_send(request.user.username, f"{request.user.username} {request.POST['command_name']} {request.POST['command_argument']}", True)
+    else:
+        response = socket_send(request.user.username, f"{request.user.username} {request.POST['command_name']}", True)
+
+    if boardname in errorlogs:
+        errorlogs[boardname].append(response.decode().split('\n'))
+    else:
+        errorlogs[boardname] = response.decode().split('\n')
+
+    if response.decode() != "SUCCESS":
+        print(response.decode())
+        
     return redirect(f"/board/{boardname}/")

@@ -146,5 +146,11 @@ div.excerpt p {
     border: solid;
     border-color: black;
     display: flex;
-    flex-direction: column-reverse; /*NOT WORKING!!!*/
+    flex-direction: column-reverse;
+    float: left;
+    width: 49%;
+}
+
+.logs {
+    overflow-x: scroll;
 }
