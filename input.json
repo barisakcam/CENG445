@@ -1,7 +1,8 @@
 {
     "cells": [
       {
-        "type": "start"
+        "type": "start",
+        "cell": 0
       },
       {
         "type": "property",
@@ -12,7 +13,8 @@
         "rents": [20, 40, 100, 200, 300]
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 2
       },
       {
         "type": "property",
@@ -23,10 +25,12 @@
         "rents": [25, 45, 150, 250, 400]
       },
       {
-        "type": "tax"
+        "type": "tax",
+        "cell": 4
       },
       {
-        "type": "teleport"
+        "type": "teleport",
+        "cell": 5
       },
       {
         "type": "property",
@@ -37,7 +41,8 @@
         "rents": [40, 75, 220, 600, 900]
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 7
       },
       {
         "type": "property",
@@ -56,7 +61,8 @@
         "rents": [45, 80, 240, 625, 950]
       },
       {
-        "type": "jail"
+        "type": "jail",
+        "cell": 10
       },
       {
         "type": "property",
@@ -67,7 +73,8 @@
         "rents": [60, 110, 325, 650, 1000]
       },
       {
-        "type": "lottery"
+        "type": "lottery",
+        "cell": 12
       },
       {
         "type": "property",
@@ -87,7 +94,8 @@
         "rents": [70, 130, 350, 700, 1100]
       },
       {
-        "type": "teleport"
+        "type": "teleport",
+        "cell": 15
       },
       {
         "type": "property",
@@ -117,7 +125,8 @@
         "rents": [90, 165, 390, 900, 1325]
       },
       {
-        "type": "lottery"
+        "type": "lottery",
+        "cell": 20
       },
       {
         "type": "property",
@@ -128,7 +137,8 @@
         "rents": [100, 180, 420, 975, 1400]
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 22
       },
       {
         "type": "property",
@@ -147,7 +157,8 @@
         "rents": [120, 200, 450, 1000, 1500]
       },
       {
-        "type": "teleport"
+        "type": "teleport",
+        "cell": 25
       },
       {
         "type": "property",
@@ -166,7 +177,8 @@
         "rents": [125, 220, 475, 1050, 1575]
       },
       {
-        "type": "lottery"
+        "type": "lottery",
+        "cell": 28
       },
       {
         "type": "property",
@@ -177,7 +189,8 @@
         "rents": [135, 230, 490, 1080, 1625]
       },
       {
-        "type": "goto jail"
+        "type": "goto jail",
+        "cell": 30
       },
       {
         "type": "property",
@@ -196,7 +209,8 @@
         "rents": [150, 250, 520, 1120, 1670]
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 33
       },
       {
         "type": "property",
@@ -207,10 +221,12 @@
         "rents": [160, 280, 560, 1200, 1720]
       },
       {
-        "type": "teleport"
+        "type": "teleport",
+        "cell": 35
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 36
       },
       {
         "type": "property",
@@ -221,7 +237,8 @@
         "rents": [175, 350, 600, 1300, 1850]
       }, 
       {
-        "type": "tax"
+        "type": "tax",
+        "cell": 38
       },     
       {
         "type": "property",

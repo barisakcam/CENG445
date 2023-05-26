@@ -1,10 +1,12 @@
 {
     "cells": [
       {
-        "type": "start"
+        "type": "start",
+        "cell": 0
       },
       {
-        "type": "goto jail"
+        "type": "goto jail",
+        "cell": 1
       },
       {
         "type": "property",
@@ -15,13 +17,16 @@
         "rents": [200, 400, 700, 1400, 2000]
       },
       {
-        "type": "jail"
+        "type": "jail",
+        "cell": 3
       },
       {
-        "type": "tax"
+        "type": "tax",
+        "cell": 4
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 5
       }
     ],
     "upgrade": 50,

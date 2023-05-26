@@ -1,10 +1,12 @@
 {
     "cells": [
       {
-        "type": "start"
+        "type": "start",
+        "cell": 0
       },
       {
-        "type": "goto jail"
+        "type": "goto jail",
+        "cell": 1
       },
       {
         "type": "property",
@@ -23,7 +25,8 @@
         "rents": [200, 400, 700, 1400, 2000]
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 4
       },
       {
         "type": "property",
@@ -42,19 +45,24 @@
         "rents": [200, 400, 700, 1400, 2000]
       },
       {
-        "type": "jail"
+        "type": "jail",
+        "cell": 7
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 8
       },
       {
-        "type": "jail"
+        "type": "jail",
+        "cell": 9
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 10
       },
       {
-        "type": "chance card"
+        "type": "chance card",
+        "cell": 11
       }
     ],
     "upgrade": 50,
