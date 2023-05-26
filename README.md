@@ -23,7 +23,12 @@ demo.py is no longer used
 # ====== PHASE 3 ====== #
 Django project "monopolyProject" added. To run, run following commands in separate terminals:
 
-python3 ./monopolyProject/monopoly/server/server.py --port 1234
+
+cd ./monopolyProject/monopoly/server
+python3 server.py --port 1234
+
 python3 ./monopolyProject/manage.py runserver
 
 Use "localhost:8000" to access Django server.
+
+Note that requirements.txt includes all installed libraries since no virtual environment is used.
