@@ -12,7 +12,7 @@ from django.db import IntegrityError
 from .forms import *
 from .models import User
 
-PHASE2_PORT = 12346
+PHASE2_PORT = 12345
 sockets = {}
 errorlogs = {}
 
@@ -56,22 +56,22 @@ def cell_position(context,num):
     while i < rows[0]:
         x[i] = x_cur
         y[i] = y_cur
-        y_cur += HEIGHT/(rows[0]+1)
+        x_cur += HEIGHT/(rows[0]+1)
         i+=1
     while i < rows[0]+rows[1]:
         x[i] = x_cur
         y[i] = y_cur
-        x_cur += WIDTH/(rows[1]+1)
+        y_cur += WIDTH/(rows[1]+1)
         i+=1
     while i < rows[0]+rows[1]+rows[2]:
         x[i] = x_cur
         y[i] = y_cur
-        y_cur -= HEIGHT/(rows[0]+1)
+        x_cur -= HEIGHT/(rows[0]+1)
         i+=1
     while i < rows[0]+rows[1]+rows[2]+rows[3]:
         x[i] = x_cur
         y[i] = y_cur
-        x_cur -= WIDTH/(rows[1]+1)
+        y_cur -= WIDTH/(rows[1]+1)
         i+=1
 
     for i in range(num):
