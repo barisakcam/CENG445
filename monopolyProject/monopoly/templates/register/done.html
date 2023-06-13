@@ -5,13 +5,13 @@
 <div class="login-container">
     <div class="login-form">
         <div class="login-head">Register</div>
-        <hr>
+        <hr class="login-hr">
         <div class="button-container" style="margin-bottom: 20px;">
             User created
         </div>
 
         <div class="button-container">
-            <button href="{% url 'login' %}">{% trans "Back to Login" %}</button>
+            <button class="login-button" onclick="window.location.href='/login';">{% trans "Back to Login" %}</button>
         </div>
     </div>
 </div>

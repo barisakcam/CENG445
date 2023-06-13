@@ -2,20 +2,23 @@
 {% load i18n %}
 
 {% block "body" %}
-{{ message }}
 <div class="login-container">
   <div class="login-form">
     <div class="login-head">Login</div>
-    <hr>
+    <hr class="login-hr">
     <form method="post" action="{% url 'login_post' %}">
       {% csrf_token %} 
       {{ form.as_p }}
 
       <div class="button-container">
-        <button href="{% url 'login' %}">{% trans "Log in" %}</button>
+        <button class="login-button" href="{% url 'login' %}">{% trans "Log in" %}</button>
       </div>
       <input type="hidden" name="next" value="{{ next }}" />
     </form>
+
+    <div style="color: red;">
+      {{ message }}
+    </div>
 
     <div>
       {% trans "Not member" %}? 

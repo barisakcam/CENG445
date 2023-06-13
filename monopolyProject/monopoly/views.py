@@ -130,7 +130,7 @@ def login_post(request):
             return redirect('home')
         else:
             context['message']='Invalid username or password'
-            return redirect("/home")
+            return render(request, 'login.html', context)
 
 def register(request):
     if request.user.is_authenticated:

@@ -5,19 +5,19 @@
 <div class="login-container">
   <div class="login-form">
     <div class="login-head">Register</div>
-    <hr>
+    <hr class="login-hr">
     <form method="post" action="/register/post">
       {% csrf_token %} 
       {{ form.as_p }}
 
       <div class="button-container">
-        <button href="{% url 'login' %}">{% trans "Submit" %}</button>
+        <button class="login-button">{% trans "Submit" %}</button>
       </div>
       <input type="hidden" name="next" value="{{ next }}" />
     </form>
 
     {% for error in errors %}
-    <div>
+    <div style="color: red;">
       {{ error }}
     </div>
     {% endfor %}
