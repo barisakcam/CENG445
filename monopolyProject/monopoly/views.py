@@ -89,7 +89,7 @@ def cell_position(context,num):
         context["board_status"]["cells"][i]["userh"] = int(HEIGHT/(rows[0]+1))/4
         context["board_status"]["cells"][i]["userw"] = int(WIDTH/(rows[1]+1))/2
         context["board_status"]["cells"][i]["tagx"] = int(x[i]) + int(WIDTH/(rows[1]+1))/2
-        context["board_status"]["cells"][i]["tagy"] = int(y[i]) + 7*int(HEIGHT/(rows[0]+1))/8
+        context["board_status"]["cells"][i]["tagy"] = int(y[i]) + 9*int(HEIGHT/(rows[0]+1))/10
         context["board_status"]["cells"][i]["levelx"] = int(x[i]) + 5*int(WIDTH/(rows[1]+1))/6
         context["board_status"]["cells"][i]["levely"] = int(y[i]) + int(HEIGHT/(rows[0]+1))/6
         context["board_status"]["cells"][i]["ownerx"] = int(x[i]) + int(WIDTH/(rows[1]+1))/4
@@ -224,7 +224,6 @@ def board_view(request, boardname):
 
     context["board_name"] = boardname
     context["board_status"] = json.loads(response.decode())
-    print(context["board_status"])
     context["command_form"] = CommandForm()
 
     if boardname not in errorlogs:
