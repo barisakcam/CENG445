@@ -2,12 +2,27 @@
 {% load i18n %}
 {% block "body" %}
 
-<form method="post" action="{% url 'board_add_post' %}" enctype="multipart/form-data">
-    {% csrf_token %} 
-    {{ form.as_p }}
-  
-    <input type="submit" value="{% trans 'Create' %}" />
-    <input type="hidden" name="next" value="{{ next }}" />
-  </form>
+<div class="login-container">
+  <div class="login-form">
+    <div class="login-head">Create Game</div>
+    <hr class="login-hr">
+    <form method="post" action="{% url 'board_add_post' %}" enctype="multipart/form-data">
+        {% csrf_token %} 
+        {{ form.as_p }}
+      
+        <div class="login-button-container">
+          <button class="login-button">{% trans "Create" %}</button>
+        </div>
+        <input type="hidden" name="next" value="{{ next }}" />
+      </form>
+
+      {% for error in errors %}
+      <div style="color: red;">
+        {{ error }}
+      </div>
+      {% endfor %}
+
+  </div>
+</div>
 
 {% endblock %}

@@ -71,7 +71,7 @@
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
 }
 
-.button-container {
+.toolbar-button-container {
     display: flex;
     justify-content: center;
     align-items: center;

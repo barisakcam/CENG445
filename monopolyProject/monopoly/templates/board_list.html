@@ -1,25 +1,39 @@
 {% extends "base.html" %}
 {% block "body" %}
-<h2> List of games </h2>
-<p>
-<a href="/board/add">Create new game</a>
-</p>
-<table border="1" cellspacing="0">
-	<tr><th>Board Name</th><th>Users</th><th>Spectators</th><th>Game Status</th><th> </th>
-	{% for board in boards %}
-	<tr>
-        <td>{{board.boardname}}</td>
-        <td>{{board.users}}</td>
-		<td>{{board.spectators}} </td>
-		{% if board.gamestarted %}
-		<td> Started </td>
-		{% else %}
-		<td> Waiting </td>
-		{% endif %}
-		<td>
-            <a href="/board/{{board.boardname}}/open">open</a>
-        </td>
-    </tr>
- 	{% endfor %}
-</table>
+	<div class="game-table-container">
+		<div class="game-table-inner">
+			<h2 style="text-align: center;"> Game List </h2>
+			<table class="game-table" border="1" cellspacing="0">
+				<tr><th>Board Name</th><th>Users</th><th>Spectators</th><th>Game Status</th><th> </th>
+				{% for board in boards %}
+				<tr>
+					<td>{{board.boardname}}</td>
+					<td>
+						{% for user in board.users %}
+							<div>{{ user }}</div>
+						{% endfor %}
+					</td>
+					<td>
+						{% for user in board.spectators %}
+							<div>{{ user }}</div>
+						{% endfor %}
+					</td>
+					{% if board.gamestarted %}
+					<td> Started </td>
+					{% else %}
+					<td> Waiting </td>
+					{% endif %}
+					<td>
+						<a href="/board/{{board.boardname}}/open" style="text-decoration: none;">OPEN</a>
+					</td>
+				</tr>
+				{% endfor %}
+			</table>
+			<p>
+				<div class="login-button-container">
+					<button class="login-button" onclick="window.location.href='/board/add';">Create new game</button>
+				</div>
+			</p>
+		</div>
+	</div>
 {% endblock %}

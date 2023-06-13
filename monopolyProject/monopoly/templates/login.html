@@ -10,7 +10,7 @@
       {% csrf_token %} 
       {{ form.as_p }}
 
-      <div class="button-container">
+      <div class="login-button-container">
         <button class="login-button" href="{% url 'login' %}">{% trans "Log in" %}</button>
       </div>
       <input type="hidden" name="next" value="{{ next }}" />

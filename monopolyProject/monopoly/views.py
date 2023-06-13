@@ -1,6 +1,8 @@
 from socket import *
 import json
 import os
+import asyncio
+from websockets.sync.client import connect
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -10,7 +12,7 @@ from django.db import IntegrityError
 from .forms import *
 from .models import User
 
-PHASE2_PORT = 1234
+PHASE2_PORT = 1233
 sockets = {}
 errorlogs = {}
 
@@ -198,6 +200,12 @@ def board_add_post(request):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, f"board_files/{request.FILES['board_file']}")
 
+    if ' ' in request.POST['board_name']:
+        context = {}
+        context['form'] = BoardAddForm()
+        context['errors'] = ['Board name can not include whitespace']
+        return render(request, 'board_add.html', context)
+    
     with open(filepath, "wb+") as destination:
         for chunk in request.FILES['board_file'].chunks():
             destination.write(chunk)
