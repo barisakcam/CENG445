@@ -4,11 +4,10 @@ body {
 }
 
 .board {
-    display: grid;
-    grid-template-columns: repeat(11, 1fr);
-    grid-template-rows: repeat(11, 1fr);
     position: relative;
-    margin: 50px;
+    width: 800px;
+    height: 800px;
+    margin: 0 auto;
 }
 .half-cell {
     background-color: color ;

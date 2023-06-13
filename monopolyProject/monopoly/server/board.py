@@ -187,6 +187,7 @@ class Board:
     def turn(self, user: User, command: str, newcell=None, pick=None) -> None:
         if command == "roll":
             if not user.status.rolled:
+                
                 dice1 = random.randint(1,6)
                 dice2 = random.randint(1,6)
                 move = dice1 + dice2
@@ -488,6 +489,7 @@ class Board:
             if user.status.rolled:
                 if not user.status.freeteleport:
                     if user.status.pick is None:
+                        user.status.paidteleport = False
                         user.status.isplaying = False
                         user.status.rolled = False
                         user.status.propertyop = False
