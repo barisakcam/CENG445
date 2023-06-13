@@ -9,6 +9,17 @@
     border-bottom: 1px solid #000000;
 }
 
+.bottom-toolbar {
+    background-color: #9b9997;
+    height: 50px;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 999;
+    border-bottom: 1px solid #000000;
+}
+
 .toolbar-content {
     max-width: 100%;
     margin: 0 0;
