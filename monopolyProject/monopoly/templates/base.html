@@ -1,9 +1,13 @@
 <html>
 	<head>
         <link rel="stylesheet" href="/static/style.css">
+		<link rel="stylesheet" href="/static/button.css">
+		<link rel="stylesheet" href="/static/login.css">
     </head>
     <body>
-        <h1> CENG 445 Online Monopoly Demo </h1>
+		<div class="toolbar">
+        	<h1 class="toolbar-content"> CENG 445 Online Monopoly Demo </h1>
+		</div>
 		<div align="right">
 		{% if request.user.is_authenticated %}
 			<p> username: {{ request.user.username }} </p>

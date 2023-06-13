@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block "body" %}
+<div class="login-container">
+  <div class="login-form">
+    <div class="login-head">Register</div>
+    <hr>
+    <form method="post" action="/register/post">
+      {% csrf_token %} 
+      {{ form.as_p }}
+
+      <div class="button-container">
+        <button href="{% url 'login' %}">{% trans "Submit" %}</button>
+      </div>
+      <input type="hidden" name="next" value="{{ next }}" />
+    </form>
+
+    {% for error in errors %}
+    <div>
+      {{ error }}
+    </div>
+    {% endfor %}
+
+    <div>
+      {% trans "Already member" %}? 
+      <a href="{% url 'login' %}">{% trans "Login" %}!
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

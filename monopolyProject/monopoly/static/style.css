@@ -1,3 +1,8 @@
+body {
+    background-color: coral;
+    font-family: "Arial", sans-serif;
+}
+
 .board {
     display: grid;
     grid-template-columns: repeat(11, 1fr);
@@ -154,3 +159,33 @@ div.excerpt p {
 .logs {
     overflow-x: scroll;
 }
+
+.toolbar {
+    background-color: #9b9997;
+    height: 50px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    border-bottom: 1px solid #000000;
+}
+
+.toolbar-content {
+    max-width: 1200px;
+    margin: 0 0;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+hr {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: -20px;
+    margin-right: -20px;
+    border-style: inset;
+    border-width: 1px;
+  }

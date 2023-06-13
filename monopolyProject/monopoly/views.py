@@ -5,6 +5,7 @@ import os
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.db import IntegrityError
 
 from .forms import *
 from .models import User
@@ -124,6 +125,7 @@ def login_post(request):
         
         if user is not None:
             login(request, user)
+            response = socket_send(username, f"{username} login {username} 0", True)
 
             return redirect('home')
         else:
@@ -134,32 +136,51 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("/home")
     else:
-        context ={}
-        context['form']= RegisterForm()
-        return render(request, 'register.html', context)
+        context = {}
+        context['form'] = RegisterForm()
+        context['errors'] = []
+        return render(request, 'register/main.html', context)
 
 def registerpost(request):
     if request.user.is_authenticated:
         return redirect("/home")
     else:
-        context ={}
+        context = {}
         context['form'] = RegisterForm()
+        context['errors'] = []
 
         username = request.POST["username"]
         password = request.POST["password"]
         email = request.POST["email"]
         full_name = request.POST["full_name"]
 
-        user = User.objects.create_user(username, email, password, full_name)
-        user.save()
-
-        return render(request, 'register.html', context)
+        try:
+            user = User.objects.create_user(username, email, password, full_name)
+            user.save()
+            return redirect('/register/done')
+        except IntegrityError as e:
+            if 'UNIQUE constraint' in str(e.args):
+                if 'username' in str(e.args):
+                    context['errors'].append("Username is already used.")
+                if 'password' in str(e.args):
+                    context['errors'].append("Password is already used.")
+                if 'email' in str(e.args):
+                    context['errors'].append("Email is already used.")
+                if 'full_name' in str(e.args):
+                    context['errors'].append("Full name is already used.")
+            else:
+                print(e)
+            return render(request, 'register/main.html', context)
+        
+def registerdone(request):
+    context = {}
+    return render(request, 'register/done.html', context)
 
 @login_required(login_url='/login')
 def logoutpost(request):
 
     if request.user.username in sockets:
-        socket_send(request.user.username, f"{request.user.username} logout")
+        socket_send(request.user.username, f"{request.user.username} logout", True)
         sockets[request.user.username].close()
         del sockets[request.user.username]
     
@@ -188,7 +209,7 @@ def board_add_post(request):
 
 @login_required(login_url='/login')
 def board_view(request, boardname):
-    context ={}
+    context = {}
 
     response = socket_send(request.user.username, f"{request.user.username} login {request.user.username} 0", True)
     response = socket_send(request.user.username, f"{request.user.username} boardinfo {boardname}", True)
