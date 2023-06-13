@@ -13,18 +13,6 @@
 <a href="/board/{{ board_name }}/ready">Ready</a>
 <a href="/board/{{ board_name }}/refresh">Refresh</a>
 
-<div class="users">
-    {% for user in board_status.users %}
-    <div class="user">
-        <p> <b>Username:</b> {{ user.username }} </p>
-        <p> <b>Properties:</b> {{ user.properties }} </p>
-        <p> <b>Location:</b> {{ user.location }} </p>
-        <p> <b>Money:</b> {{ user.money }} </p>
-        <p> <b>Ready:</b> {{ user.ready }} </p>
-        <p> <b>Turn:</b> {{ user.isplaying }} </p>
-    </div>
-    {% endfor %}
-</div>
 <form class="command" method="post" action="/board/{{ board_name }}/command/" >
     {% csrf_token %} 
     {{ command_form.as_p }}
@@ -32,23 +20,9 @@
     <input type="submit" value="{% trans 'Send' %}" />
     <input type="hidden" name="next" value="{{ next }}" />
 </form>
-<div>
-    <div class="gamelog">
-        <div>
-        {% for line in game_log %}
-            <p> {{ line }} </p>
-        {% endfor %}
-        </div>
-    </div>
-    <div class="gamelog">
-        <div>
-        {% for line in error_log %}
-            <p> {{ line.0 }} </p>
-        {% endfor %}
-        </div>
-    </div>
-</div>
+
 <svg class="board" width="800" height="1000">
+    <rect x="0" y="0" width="1000" height="800" fill=#bfdbae stroke="black" stroke-width="2"></rect>
     {% for cell in board_status.cells %}
         {% if cell.type == 'property' %}
             <rect x="{{ cell.x }}" y="{{ cell.y }}" width="{{ cell.w }}" height="{{ cell.h }}" fill="white", stroke="black", stroke-width=2 ></rect>
@@ -89,6 +63,37 @@
         {% endfor %}
     {% endfor %}
 </svg>
+
+<div class="users">
+    {% for user in board_status.users %}
+    <div class="user">
+        <p> <b>Username:</b> {{ user.username }} </p>
+        <p> <b>Properties:</b> {{ user.properties }} </p>
+        <p> <b>Location:</b> {{ user.location }} </p>
+        <p> <b>Money:</b> {{ user.money }} </p>
+        <p> <b>Ready:</b> {{ user.ready }} </p>
+        <p> <b>Turn:</b> {{ user.isplaying }} </p>
+    </div>
+    {% endfor %}
+</div>
+
+<div>
+    <div class="gamelog">
+        <div>
+        {% for line in game_log %}
+            <p> {{ line }} </p>
+        {% endfor %}
+        </div>
+    </div>
+    <div class="gamelog">
+        <div>
+        {% for line in error_log %}
+            <p> {{ line.0 }} </p>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
 
 
 {% endblock %}
