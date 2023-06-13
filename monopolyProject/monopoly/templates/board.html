@@ -94,8 +94,8 @@
                 {% endif %}
                 {% for user in board_status.users %}
                     {% if user.location == cell.number %}
-                        <rect x="{{ cell.userx }}%" y="{{ cell.usery }}%" width="{{ cell.userw }}%" height="{{ cell.userh }}%" fill="beige", stroke="black", stroke-width=2></rect>
-                        <text x="{{ cell.tagx }}%" y="{{ cell.tagy }}%" text-anchor="middle" fill="black" font-size="12px">{{ user.username }}</text>
+                        <rect x="{{ cell.userx }}%" y="{{ cell.usery }}%" width="{{ cell.userw }}%" height="{{ cell.userh }}%" fill="beige", stroke="black", stroke-width=2 z-score="-1"></rect>
+                        <text x="{{ cell.tagx }}%" y="{{ cell.tagy }}%" text-anchor="middle" fill="black" font-size="12px" z-score="-1" >{{ user.username }}</text>
                     {% endif %}
                 {% endfor %}
             {% endfor %}
@@ -103,8 +103,18 @@
         {% for cell in board_status.cells %}
             {% if cell.type == 'property' %}
             <button style="position: absolute; top: {{cell.y}}% ; left: {{cell.x}}%; width:{{cell.w}}%; height:{{ cell.h }}% ; opacity: 0.1;" onclick="pickButtonHandler({{cell.number}})()"></button>
+            {% elif cell.type == 'chance card' %}
+            <img src="/static/images/chance.png" style="position: absolute; top: {{cell.y}}% ; left:{{cell.x}}% ; width:{{cell.w}}% ; height:{{ cell.h }}%">
+            {% elif cell.type == 'jail' %}
+            <img src="/static/images/jail.png" style="position: absolute; top: {{cell.y}}% ; left:{{cell.x}}% ; width:{{cell.w}}% ; height:{{ cell.h }}%">
+            {% elif cell.type == 'goto jail' %}
+            <img src="/static/images/gotojail.png" style="position: absolute; top: {{cell.y}}% ; left:{{cell.x}}% ; width:{{cell.w}}% ; height:{{ cell.h }}%">
             {% endif %}
         {% endfor %}
+        <img src="/static/images/monopoly.svg" id="monopoly" style="position: absolute; top: 45%; left: 33.3%; width: 33.3%; height: 10%">
+
+        <img src="/static/images/1.png" id="dice1" style="position: absolute; top: 66.6%; left: 45%; width: 5%; height: 5%">
+        <img src="/static/images/6.png" id="dice2" style="position: absolute; top: 66.6%; left: 50%; width: 5%; height: 5%">
     </div>
     <div class="board-container">
         <div class="board-form">
