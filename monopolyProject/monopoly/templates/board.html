@@ -86,6 +86,7 @@
     <div style="overflow-x: scroll; position: relative;">
         <svg class="board" viewBox="0 0 1000 1000" width="100%" height="100%" >
             <rect x="0%" y="0%" width="100%" height="100%" fill=#bfdbae stroke="black" stroke-width="2"></rect>
+            <text x="50%" y="50%" text-anchor="middle" fill="#000000" font-size="28px">  {{ board_name }} </text>
             {% for cell in board_status.cells %}
                 {% if cell.type == 'property' %}
                     <rect x="{{ cell.x }}%" y="{{ cell.y }}%" width="{{ cell.w }}%" height="{{ cell.h }}%" fill="white", stroke="black", stroke-width=2 class="test-svg"  ></rect>
@@ -133,62 +134,69 @@
                 </button>
             {% endif %}
             {% if cell.number == 7 %}
-                <img src="/static/images/monopoly.svg" id="monopoly" style="position: absolute; top: 40%; left: 33.3%; width: 33.3%; height: 10%">
+                <img src="/static/images/monopoly.svg" id="monopoly" style="position: absolute; top: 38%; left: 30%; width: 40%; height: 11.1%">
                 <img src="/static/images/1.png" id="dice1" style="position: absolute; top: 60%; left: 45%; width: 5%; height: 5%">
                 <img src="/static/images/6.png" id="dice2" style="position: absolute; top: 60%; left: 50%; width: 5%; height: 5%">
             {% endif %}
         {% endfor %}
         
-        <button style="position: absolute; top: 52%; left: 35%; width: 8%; height: 3%; opacity: 1;">roll</button>
-        <button style="position: absolute; top: 57%; left: 35%; width: 8%; height: 3%; opacity: 1;">buy</button>
-        <button style="position: absolute; top: 62%; left: 35%; width: 8%; height: 3%; opacity: 1;">upgrade</button>
-        <button style="position: absolute; top: 52%; left: 57%; width: 8%; height: 3%; opacity: 1;">pick</button>
-        <button style="position: absolute; top: 57%; left: 57%; width: 8%; height: 3%; opacity: 1;">teleport</button>
-        <button style="position: absolute; top: 62%; left: 57%; width: 8%; height: 3%; opacity: 1;">end</button>
+        <button style="position: absolute; top: 35%; left: 35%; width: 13%; height: 4%; opacity: 1;">Close</button>
+        <button style="position: absolute; top: 35%; left: 52%; width: 13%; height: 4%; opacity: 1;">Ready</button>
 
+        <button style="position: absolute; top: 52%; left: 35%; width: 8%; height: 3%; opacity: 1;">Roll</button>
+        <button style="position: absolute; top: 57%; left: 35%; width: 8%; height: 3%; opacity: 1;">Buy</button>
+        <button style="position: absolute; top: 62%; left: 35%; width: 8%; height: 3%; opacity: 1;">Upgrade</button>
+        <button style="position: absolute; top: 52%; left: 57%; width: 8%; height: 3%; opacity: 1;">Pick</button>
+        <button style="position: absolute; top: 57%; left: 57%; width: 8%; height: 3%; opacity: 1;">Teleport</button>
+        <button style="position: absolute; top: 62%; left: 57%; width: 8%; height: 3%; opacity: 1;">End</button>
+          
     </div>
-</div>
-
-<div class="users">
-    {% for user in board_status.users %}
-    <div class="user">
-        <p> <b>Username:</b> {{ user.username }} </p>
-
-        <p> <b>Properties:</b> </p>
-        
-        <div class= "props"> 
-        {% for property in user.properties %}
-            <div class="prop" style= "background-color: {{property.color}}; "> 
-                {{property.number}}) {{ property.name }}: Level {{property.level}} <br>
-                {{ property.rents }} <br>
+    <div class="infos">
+        <div class="logs">
+            <div class="gamelog">
+                <div>
+                {% for line in game_log %}
+                    <p> {{ line }} </p>
+                {% endfor %}
+                </div>
             </div>
-        {% endfor %}
+            <div class="gamelog">
+                <div>
+                {% for line in error_log %}
+                    <p> {{ line.0 }} </p>
+                {% endfor %}
+                </div>
+            </div>    
+
         </div>
-       
-        <p> <b>Location:</b> {{ user.location }} </p>
-        <p> <b>Money:</b> {{ user.money }} </p>
-        <p> <b>Ready:</b> {{ user.ready }} </p>
-        <p> <b>Turn:</b> {{ user.isplaying }} </p>
+        <div class="users">
+            {% for user in board_status.users %}
+            <div class="user">
+                <p> <b>Username:</b> {{ user.username }} </p>
+        
+                <p> <b>Properties:</b> </p>
+                
+                <div class= "props"> 
+                {% for property in user.properties %}
+                    <div class="prop" style= "background-color: {{property.color}}; "> 
+                        {{property.number}}) {{ property.name }}: Level {{property.level}} <br>
+                        {{ property.rents }} <br>
+                    </div>
+                {% endfor %}
+                </div>
+               
+                <p> <b>Location:</b> {{ user.location }} </p>
+                <p> <b>Money:</b> {{ user.money }} </p>
+                <p> <b>Ready:</b> {{ user.ready }} </p>
+                <p> <b>Turn:</b> {{ user.isplaying }} </p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-    {% endfor %}
+
 </div>
 
-<div>
-    <div class="gamelog">
-        <div>
-        {% for line in game_log %}
-            <p> {{ line }} </p>
-        {% endfor %}
-        </div>
-    </div>
-    <div class="gamelog">
-        <div>
-        {% for line in error_log %}
-            <p> {{ line.0 }} </p>
-        {% endfor %}
-        </div>
-    </div>
-</div>
+
 
 
 

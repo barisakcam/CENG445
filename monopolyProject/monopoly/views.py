@@ -47,7 +47,20 @@ def cell_position(context,num):
         elif num%4 == 3:
             rows = (num//4+1,num//4+1,num//4+1,num//4)
     else:
-        rows = (0,num,0,0)
+        if num == 1:
+            rows = (1,0,0,0)
+        elif num == 2:
+            rows = (2,0,0,0)
+        elif num == 3:
+            rows = (2,1,0,0)
+        elif num == 4:
+            rows = (2,2,0,0)
+        elif num == 5:
+            rows = (2,2,1,0)
+        elif num == 6:
+            rows = (2,2,2,0)
+        elif num == 7:
+            rows = (2,2,2,1)
 
     #print(rows)
     x = num*[0]
