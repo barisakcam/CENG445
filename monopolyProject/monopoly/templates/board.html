@@ -86,7 +86,7 @@
 
         </div>
         <hr>
-        <div class="logs">
+        <div id="userlist" class="users">
             {% for user in board_status.users %}
             <div id="{{user.username}}_card" class="user">
                 <p> <b>Username:</b> {{ user.username }} </p>
@@ -128,6 +128,11 @@
                 setInterval(function(){
                     s.send('{{username}} gamelog')
                 }, 3000)
+
+                s.send('{{username}} boardinfo {{ board_name }}')
+                setInterval(function(){
+                    s.send('{{username}} boardinfo {{ board_name }}')
+                }, 3000)
             }
             this.socket.onerror = function() {
                 console.log('Connection failed')
@@ -153,6 +158,42 @@
                     }
 
                     gamelog.scrollTo(0, gamelog.scrollHeight)
+                }
+                else if (event.data[0] == '{')
+                {
+                    var users_list = document.getElementById("userlist");
+
+                    while (users_list.firstChild) {
+                        users_list.removeChild(users_list.firstChild);
+                    }
+
+                    var users = JSON.parse(event.data).users
+                    for (var i = 0; i < users.length; i ++) {
+                        var user_entry = document.createElement("div")
+                        user_entry.setAttribute("class", "user")
+                        user_entry.insertAdjacentHTML('beforeend', `<p><b>Username:</b> ${users[i].username} </p>`)
+                        user_entry.insertAdjacentHTML('beforeend', `<p> <b>Properties:</b> </p>`)
+
+                        var props = document.createElement("div")
+                        props.setAttribute("class", "props")
+
+                        for (var j = 0; j < users[i].properties.length; j ++) {
+                            var prop_entry = document.createElement("div")
+                            prop_entry.setAttribute("class", "prop")
+                            prop_entry.setAttribute("style", `background-color: ${users[i].properties[j].color}; `)
+                            prop_entry.insertAdjacentHTML('beforeend', `${users[i].properties[j].number} ${users[i].properties[j].name}: Level ${users[i].properties[j].level} <br> ${users[i].properties[j].rents} <br>`)
+                            props.appendChild(prop_entry)
+                            console.log(prop_entry)
+                        }
+
+                        user_entry.appendChild(props)
+
+                        user_entry.insertAdjacentHTML('beforeend', `<p><b>Location:</b> ${users[i].location} </p>`)
+                        user_entry.insertAdjacentHTML('beforeend', `<p><b>Money:</b> ${users[i].money} </p>`)
+                        user_entry.insertAdjacentHTML('beforeend', `<p><b>Ready:</b> ${users[i].ready} </p>`)
+                        user_entry.insertAdjacentHTML('beforeend', `<p><b>Turn:</b> ${users[i].isplaying} </p>`)
+                        users_list.appendChild(user_entry);
+                    }
                 }
                 else
                 {
