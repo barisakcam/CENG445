@@ -70,10 +70,10 @@ class PropertyOp(Exception):
 # Exceptions are used to check error conditions. They are caught in demo applications and converted to print statements.
 class Board:
 
-    def __init__(self, file: str) -> None:
-        self.constructor(file)
+    def __init__(self, file: str, access_type: str, access_list: list) -> None:
+        self.constructor(file, access_type, access_list)
 
-    def constructor(self, file: str) -> None:
+    def constructor(self, file: str, access_type: str, access_list: list) -> None:
         self.file = file
         with open(self.file, "r") as f:
             data = json.load(f)
@@ -94,6 +94,9 @@ class Board:
         self.jailbail = data["jailbail"]
         self.teleport = data["teleport"]
         self.lottery = data["lottery"]
+
+        self.access_type = access_type
+        self.access_list = access_list
 
     def delete(self) -> None:
         self.users.clear()

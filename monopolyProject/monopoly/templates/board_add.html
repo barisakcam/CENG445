@@ -25,4 +25,19 @@
   </div>
 </div>
 
+<script type="text/javascript">
+  const setUserList = function () { //TODO: Not used
+    var list = document.getElementById("id_board_users")
+
+    for (var i = 0; i < list.childNodes.length; i ++)
+    {
+      if (list.childNodes[i].style)
+      {
+        list.childNodes[i].style.display = 'none'
+        list.childNodes[i].style.display = ''
+      }
+    }
+  }
+  
+</script>
 {% endblock %}

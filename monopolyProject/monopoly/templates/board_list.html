@@ -22,7 +22,7 @@
 			while (table.firstChild) {
                 table.removeChild(table.firstChild);
             }
-			table.insertAdjacentHTML('beforeend', "<tr><th>Board Name</th><th>Users</th><th>Spectators</th><th>Game Status</th><th> </th>");
+			table.insertAdjacentHTML('beforeend', "<tr><th>Board Name</th><th>Users</th><th>Spectators</th><th>Game Status</th><th>Access</th><th> </th>");
 
 			for (var i = 0; i < data.length; i ++)
 			{
@@ -49,6 +49,10 @@
 				var statusCell = document.createElement("td");
 				statusCell.textContent = data[i].gamestarted;
 				row.appendChild(statusCell);
+
+				var accessCell = document.createElement("td");
+				accessCell.textContent = data[i].access_type;
+				row.appendChild(accessCell);
 
 
 				row.insertAdjacentHTML('beforeend', `<td><a href="/board/${data[i].boardname}/open" style="text-decoration: none;">OPEN</a></td>`);

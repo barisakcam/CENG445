@@ -9,6 +9,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
+from django.contrib.auth.models import AnonymousUser
 
 from .forms import *
 from .models import User
@@ -17,6 +20,7 @@ PHASE2_PORT = 12345
 sockets = {}
 errorlogs = {}
 WS_URI = 'ws://127.0.0.1:1234'
+anon_ctr = 0
 
 def socket_send(username, message, receive=False):
     try:
@@ -114,13 +118,27 @@ def cell_position(context,num):
         context["board_status"]["cells"][i]["ownery"] = ((y[i]) + (HEIGHT/(rows[0]+1))/6).__round__(2)
     return context
 
-@login_required(login_url='/login')
-def index(request):
-    #response = socket_send(request.user.username, f"{request.user.username} list", True)
+def getName(request):
+    if isinstance(request.user, AnonymousUser):
+        return request.session['anon_name']
+    else:
+        return request.user
     
+#@login_required(login_url='/login')
+def index(request):
+    #response = socket_send(getName(request), f"{getName(request)} list", True)
+    
+    if hasattr(request, 'session') and not request.session.session_key:
+        global anon_ctr
+
+        request.session['anon_name'] = 'anon' + str(anon_ctr)
+        #request.session.save()
+        #request.session.modified = True
+        anon_ctr = anon_ctr + 1
+
     context = {}
     context['boards'] = []#json.loads(response.decode())
-    context['username'] = request.user
+    context['username'] = getName(request)
 
     return render(request,'board_list.html', context)
 
@@ -200,10 +218,10 @@ def registerdone(request):
 @login_required(login_url='/login')
 def logoutpost(request):
 
-    if request.user.username in sockets:
-        socket_send(request.user.username, f"{request.user.username} logout", True)
-        sockets[request.user.username].close()
-        del sockets[request.user.username]
+    if getName(request) in sockets:
+        socket_send(getName(request), f"{getName(request)} logout", True)
+        sockets[getName(request)].close()
+        del sockets[getName(request)]
     
     logout(request)
     return redirect("/home")
@@ -229,17 +247,28 @@ def board_add_post(request):
         for chunk in request.FILES['board_file'].chunks():
             destination.write(chunk)
 
-    response = socket_send(request.user.username, f"{request.user.username} new {request.POST['board_name']} ../board_files/{request.FILES['board_file']}", True)
+    if request.POST['board_access'] == 'owner':
+        access_list = [request.user.username]
+    elif request.POST['board_access'] == 'select_users':
+        access_list = request.POST.getlist('board_users')
+    elif request.POST['board_access'] == 'authenticated':
+        access_list = []
+    elif request.POST['board_access'] == 'all':
+        access_list = ['anon']
+
+    access_list_str = json.dumps(access_list, separators=(',', ':'))
+
+    response = socket_send(getName(request), f"{getName(request)} new {request.POST['board_name']} ../board_files/{request.FILES['board_file']} {request.POST['board_access']} {access_list_str}", True)
     errorlogs[request.POST['board_name']] = []
 
     return redirect("/home")
 
-@login_required(login_url='/login')
+#@login_required(login_url='/login')
 def board_view(request, boardname):
     context = {}
-
-    response = socket_send(request.user.username, f"{request.user.username} login {request.user.username} 0", True)
-    response = socket_send(request.user.username, f"{request.user.username} boardinfo {boardname}", True)
+    
+    response = socket_send(getName(request), f"{getName(request)} login {getName(request)} 0", True)
+    response = socket_send(getName(request), f"{getName(request)} boardinfo {boardname}", True)
 
     context["board_name"] = boardname
     context["board_status"] = json.loads(response)
@@ -248,46 +277,46 @@ def board_view(request, boardname):
     if boardname not in errorlogs:
         errorlogs[boardname] = []
 
-    response = socket_send(request.user.username, f"{request.user.username} gamelog", True)
+    response = socket_send(getName(request), f"{getName(request)} gamelog", True)
     context["game_log"] = response.split("\n")
     context["error_log"] = errorlogs[boardname]
 
     context = cell_position(context, len(context["board_status"]["cells"]))
 
-    context["username"] = request.user
+    context["username"] = getName(request)
 
     return render(request, 'board.html', context)
 
-@login_required(login_url='/login')
+#@login_required(login_url='/login')
 def board_open(request, boardname):
-    response = socket_send(request.user.username, f"{request.user.username} login {request.user.username} 0", True)
-    response = socket_send(request.user.username, f"{request.user.username} close", True) # to make browser back button work
-    response = socket_send(request.user.username, f"{request.user.username} open {boardname}", True)
+    response = socket_send(getName(request), f"{getName(request)} login {getName(request)} 0", True)
+    response = socket_send(getName(request), f"{getName(request)} close", True) # to make browser back button work
+    response = socket_send(getName(request), f"{getName(request)} open {boardname}", True)
 
     return redirect(f"/board/{boardname}/")
 
-@login_required(login_url='/login')
+#@login_required(login_url='/login')
 def board_close(request, boardname):
-    response = socket_send(request.user.username, f"{request.user.username} close", True)
+    response = socket_send(getName(request), f"{getName(request)} close", True)
 
     return redirect("/home")
 
-@login_required(login_url='/login')
+#@login_required(login_url='/login')
 def board_ready(request, boardname):
-    response = socket_send(request.user.username, f"{request.user.username} ready", True)
+    response = socket_send(getName(request), f"{getName(request)} ready", True)
 
     return redirect(f"/board/{boardname}/")
 
-@login_required(login_url='/login')
+#@login_required(login_url='/login')
 def board_refresh(request, boardname):
     return redirect(f"/board/{boardname}/")
 
-@login_required(login_url='/login')
+#@login_required(login_url='/login')
 def board_command(request, boardname):
     if request.POST['command_name'] == "teleport" or request.POST['command_name'] == "pick":
-        response = socket_send(request.user.username, f"{request.user.username} {request.POST['command_name']} {request.POST['command_argument']}", True)
+        response = socket_send(getName(request), f"{getName(request)} {request.POST['command_name']} {request.POST['command_argument']}", True)
     else:
-        response = socket_send(request.user.username, f"{request.user.username} {request.POST['command_name']}", True)
+        response = socket_send(getName(request), f"{getName(request)} {request.POST['command_name']}", True)
 
     if boardname in errorlogs:
         errorlogs[boardname].append(response.split('\n'))

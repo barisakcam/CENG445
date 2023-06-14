@@ -114,24 +114,42 @@ class BoardDict:
     def __getitem__(self, index):
         return self.data[index]
 
-    def new(self, name, file):
+    def new(self, name, file, access_type, access_list_str):
         with mutex:
+            print(access_type)
+            print(access_list_str)
             if name not in self.data:
-                self.data[name] = board.Board(file)
+                access_list = json.loads(access_list_str)
+                self.data[name] = board.Board(file, access_type, access_list)
             else:
                 pass
 
-    def list(self):
+    def list(self, username):
         with mutex:
             res = [{"boardname": name, 
                     "users": [user for user in self.data[name].users], 
                     "spectators": [spectator for spectator in self.data[name].spectators],
-                    "gamestarted": self.data[name].gamestarted} for name in self.data]
-        return json.dumps(res)
+                    "gamestarted": self.data[name].gamestarted,
+                    "access_type": self.data[name].access_type,
+                    "access_list": self.data[name].access_list} for name in self.data]
+            
+            res_filtered = []
+
+            for b in res:
+                if b["access_type"] == "authenticated" and not (len(username) > 4 and username[:4] == "anon"):
+                    res_filtered.append(b)
+                elif b["access_type"] == "all":
+                    res_filtered.append(b)
+                elif username in b["access_list"]:
+                    res_filtered.append(b)
+
+            print(res_filtered)
+            return res_filtered
     
     def open(self, name, username):
         with mutex:
-            if name in self.data:
+            allowed = [board["boardname"] for board in self.list(username)]
+            if name in self.data and name in allowed:
                 self.data[name].attach(users[username])
                 return True
             else:
@@ -203,7 +221,7 @@ class Agent(Thread):
         self.cursor = self.connection.cursor()
 
         try:
-            request = self.sock.recv(1024)
+            request = self.sock.recv()
             while request != b'':
                 cmds = parsecommand(request)
                 self.username = cmds[0]
@@ -270,13 +288,13 @@ class Agent(Thread):
                     self.username = None
                     self.sock.send(f"INFO: Logged out.")
 
-                # new <boardname> <file>
+                # new <boardname> <file> <access_type> <access_list>
                 elif cmds[0] == "new":
-                    if len(cmds) != 3:
-                        self.sock.send(f"ERROR: new expects 2 arguments. Received: {len(cmds) - 1}")
+                    if len(cmds) != 5:
+                        self.sock.send(f"ERROR: new expects 4 arguments. Received: {len(cmds) - 1}")
                     else:
                         try:
-                            boards.new(cmds[1], cmds[2])
+                            boards.new(cmds[1], cmds[2], cmds[3], cmds[4])
                             self.sock.send(f"INFO: Board created.")
                         except FileNotFoundError:
                             self.sock.send(f"ERROR: Input file not found.")
@@ -287,7 +305,7 @@ class Agent(Thread):
                         self.sock.send(f"ERROR: list expects no arguments. Received: {len(cmds) - 1} ")
                     else:
                         #self.sock.send("\n".join(boards.list()))
-                        self.sock.send(boards.list())
+                        self.sock.send(json.dumps(boards.list(self.username)))
 
                 # open <boardname> 
                 elif cmds[0] == "open":
@@ -430,7 +448,7 @@ class Agent(Thread):
                 else:
                     self.sock.send(f"ERROR: Command not found.")      
 
-                request = self.sock.recv(1024)
+                request = self.sock.recv()
 
         except ConnectionClosed as e:
             print(e)
