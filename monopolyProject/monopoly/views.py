@@ -3,6 +3,7 @@ import json
 import os
 import asyncio
 from websockets.sync.client import connect
+from websockets.exceptions import ConnectionClosed
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -12,21 +13,24 @@ from django.db import IntegrityError
 from .forms import *
 from .models import User
 
-PHASE2_PORT = 1233
+PHASE2_PORT = 1234
 sockets = {}
 errorlogs = {}
+WS_URI = 'ws://127.0.0.1:1234'
 
 def socket_send(username, message, receive=False):
-    if username not in sockets:
-        sockets[username] = socket(AF_INET, SOCK_STREAM)
-        sockets[username].connect(('', PHASE2_PORT))
+    try:
+        if username not in sockets:
+            sockets[username] = connect(WS_URI)
 
-    s = sockets[username]
-    s.send(message.encode())
+        s = sockets[username]
+        s.send(message)
 
-    if receive:
-        response = s.recv(1024 * 16)
-        return response
+        if receive:
+            response = s.recv(1024 * 16)
+            return response
+    except ConnectionClosed as e:
+        print(e)
 
 def cell_position(context,num):
     WIDTH = 1000
@@ -98,10 +102,11 @@ def cell_position(context,num):
 
 @login_required(login_url='/login')
 def index(request):
-    response = socket_send(request.user.username, f"{request.user.username} list", True)
+    #response = socket_send(request.user.username, f"{request.user.username} list", True)
     
     context = {}
-    context['boards'] = json.loads(response.decode())
+    context['boards'] = []#json.loads(response.decode())
+    context['username'] = request.user
 
     return render(request,'board_list.html', context)
 
@@ -223,7 +228,7 @@ def board_view(request, boardname):
     response = socket_send(request.user.username, f"{request.user.username} boardinfo {boardname}", True)
 
     context["board_name"] = boardname
-    context["board_status"] = json.loads(response.decode())
+    context["board_status"] = json.loads(response)
     print(context["board_status"])
     context["command_form"] = CommandForm()
 
@@ -231,7 +236,7 @@ def board_view(request, boardname):
         errorlogs[boardname] = []
 
     response = socket_send(request.user.username, f"{request.user.username} gamelog", True)
-    context["game_log"] = response.decode().split("\n")
+    context["game_log"] = response.split("\n")
     context["error_log"] = errorlogs[boardname]
 
     context = cell_position(context, len(context["board_status"]["cells"]))
@@ -270,11 +275,11 @@ def board_command(request, boardname):
         response = socket_send(request.user.username, f"{request.user.username} {request.POST['command_name']}", True)
 
     if boardname in errorlogs:
-        errorlogs[boardname].append(response.decode().split('\n'))
+        errorlogs[boardname].append(response.split('\n'))
     else:
-        errorlogs[boardname] = response.decode().split('\n')
+        errorlogs[boardname] = response.split('\n')
 
-    if response.decode() != "SUCCESS":
-        print(response.decode())
+    if response != "SUCCESS":
+        print(response)
         
     return redirect(f"/board/{boardname}/")

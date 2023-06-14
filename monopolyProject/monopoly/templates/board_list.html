@@ -3,31 +3,8 @@
 	<div class="game-table-container">
 		<div class="game-table-inner">
 			<h2 style="text-align: center;"> Game List </h2>
-			<table class="game-table" border="1" cellspacing="0">
-				<tr><th>Board Name</th><th>Users</th><th>Spectators</th><th>Game Status</th><th> </th>
-				{% for board in boards %}
-				<tr>
-					<td>{{board.boardname}}</td>
-					<td>
-						{% for user in board.users %}
-							<div>{{ user }}</div>
-						{% endfor %}
-					</td>
-					<td>
-						{% for user in board.spectators %}
-							<div>{{ user }}</div>
-						{% endfor %}
-					</td>
-					{% if board.gamestarted %}
-					<td> Started </td>
-					{% else %}
-					<td> Waiting </td>
-					{% endif %}
-					<td>
-						<a href="/board/{{board.boardname}}/open" style="text-decoration: none;">OPEN</a>
-					</td>
-				</tr>
-				{% endfor %}
+			<table id="game-table" class="game-table" border="1" cellspacing="0">
+				<tr><td>Loading ...</td></tr>
 			</table>
 			<p>
 				<div class="login-button-container">
@@ -36,4 +13,81 @@
 			</p>
 		</div>
 	</div>
+
+	<script type="text/javascript">
+		
+		function insert (data) {
+			console.log(data)
+			var table = document.getElementById("game-table");
+			while (table.firstChild) {
+                table.removeChild(table.firstChild);
+            }
+			table.insertAdjacentHTML('beforeend', "<tr><th>Board Name</th><th>Users</th><th>Spectators</th><th>Game Status</th><th> </th>");
+
+			for (var i = 0; i < data.length; i ++)
+			{
+				var row = document.createElement("tr");
+
+				var boardnameCell = document.createElement("td");
+				boardnameCell.textContent = data[i].boardname;
+				row.appendChild(boardnameCell);
+
+				var usersCell = document.createElement("td");
+				for (var j = 0; j < data[i].users.length; j ++)
+				{
+					usersCell.insertAdjacentHTML('beforeend', `<div>${data[i].users[j]}</div>`);
+				}
+				row.appendChild(usersCell);
+
+				var specCell = document.createElement("td");
+				for (var j = 0; j < data[i].spectators.length; j ++)
+				{
+					specCell.insertAdjacentHTML('beforeend', `<div>${data[i].spectators[j]}</div>`);
+				}
+				row.appendChild(specCell);
+
+				var statusCell = document.createElement("td");
+				statusCell.textContent = data[i].gamestarted;
+				row.appendChild(statusCell);
+
+
+				row.insertAdjacentHTML('beforeend', `<td><a href="/board/${data[i].boardname}/open" style="text-decoration: none;">OPEN</a></td>`);
+
+				table.appendChild(row);
+			}
+
+		}
+
+		class Ws {
+			constructor(ipport) {
+				this.socket = undefined;
+				this.ipport = ipport;
+				this.createwebsocket();
+			}
+			createwebsocket() {
+				var socket = new WebSocket('ws://' + this.ipport);
+				socket.onopen = function() {
+					console.log('Connected')
+					socket.send('{{username}} list')
+					setInterval(function(){
+						socket.send('{{username}} list')
+					}, 3000)
+				}
+				socket.onerror = function() {
+					console.log('Connection failed')
+				}
+				socket.onclose = function() {
+					console.log('Connection closed')
+				}
+				socket.onmessage = function(event) {
+					console.log('Message received')
+					insert(JSON.parse(event.data))
+				}
+			}
+		}
+
+		window.onload = function () {
+			ws = new Ws('127.0.0.1:1234')
+		}
+	</script>
 {% endblock %}
