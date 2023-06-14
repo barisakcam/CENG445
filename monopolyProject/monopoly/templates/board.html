@@ -3,9 +3,37 @@
 {% block "body" %}
 
 <script type="text/javascript">
-    //setTimeout(function(){
-    //  location = ''
-    //}, 60000)
+    class Ws {
+        constructor(ipport) {
+            this.socket = undefined;
+            this.ipport = ipport;
+            this.createwebsocket();
+        }
+        createwebsocket() {
+            var socket = new WebSocket('ws://' + this.ipport);
+            socket.onopen = function() {
+                console.log('Connected')
+                socket.send('{{username}} gamelog')
+                setInterval(function(){
+                    socket.send('{{username}} gamelog')
+                }, 3000)
+            }
+            socket.onerror = function() {
+                console.log('Connection failed')
+            }
+            socket.onclose = function() {
+                console.log('Connection closed')
+            }
+            socket.onmessage = function(event) {
+                console.log('Message received')
+                console.log(JSON.parse(event.data))
+            }
+        }
+    }
+
+    window.onload = function () {
+        ws = new Ws('127.0.0.1:1234')
+    }
 
     const pickButtonHandler = (id) => {
         return (event) => {

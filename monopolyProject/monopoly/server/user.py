@@ -63,12 +63,14 @@ class User:
         ##############################
         self.status = UserStatus()
         self.attachedboard: board.Board = None
+        self.gamelog = []
 
         self.callbackqueue = queue.Queue()
         self.cvlock = threading.Lock()
         self.cv = threading.Condition(self.cvlock)
 
     def reset(self) -> None:
+        self.gamelog = []
         self.status.reset()
         self.attachedboard = None
 

@@ -77,10 +77,14 @@ class UserDict:
             
     def getmessage(self, username):
         with mutex:
-            res = []
+            #res = []
             while not self.data[username].callbackqueue.empty():
-                res.append(f"{self.data[username].callbackqueue.get()}")
-            return "\n".join(res)
+                self.data[username].gamelog.append(f"{self.data[username].callbackqueue.get()}")
+            #return "\n".join(res)
+        
+    def getgamelog(self, username):
+        with mutex:
+            return self.data[username].gamelog
         
     def play(self, username, command, newcell=None, pick=None):
         with mutex:
@@ -180,7 +184,8 @@ class Agent(Thread):
             while True:
                 with users[self.username].cv:
                     if users[self.username].cv.wait(timeout=0.5):
-                        self.gamelog.append(users.getmessage(self.username))
+                        users.getmessage(self.username)
+                        #self.gamelog.append(users.getmessage(self.username))
                         continue
                         self.sock.send(users.getmessage(self.username))
                     else:
@@ -416,13 +421,11 @@ class Agent(Thread):
                 # gamelog
                 elif cmds[0] == "gamelog":
                     if self.ch is not None:
-                        self.sock.send("\n".join(self.ch.gamelog))
-                        print("\n".join(self.ch.gamelog))
+                        self.sock.send(json.dumps(users.getgamelog(self.username)))
                     else:
                         self.ch = self.CallbackHandler(self.sock, self.username) # Django server reset fix
                         self.ch.start()
-                        self.sock.send("\n".join(self.ch.gamelog))
-                        print("\n".join(self.ch.gamelog))
+                        self.sock.send(json.dumps(users.getgamelog(self.username)))
 
                 else:
                     self.sock.send(f"ERROR: Command not found.")      

@@ -230,7 +230,6 @@ def board_view(request, boardname):
 
     context["board_name"] = boardname
     context["board_status"] = json.loads(response)
-    print(context["board_status"])
     context["command_form"] = CommandForm()
 
     if boardname not in errorlogs:
@@ -241,6 +240,8 @@ def board_view(request, boardname):
     context["error_log"] = errorlogs[boardname]
 
     context = cell_position(context, len(context["board_status"]["cells"]))
+
+    context["username"] = request.user
 
     return render(request, 'board.html', context)
 
