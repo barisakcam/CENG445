@@ -98,25 +98,21 @@
     </div>
     <div class="infos">
         <div class="logs">
-            <div class="gamelog">
-                <div>
+            <div id="gamelog" class="gamelog">
                 {% for line in game_log %}
                     <p> {{ line }} </p>
                 {% endfor %}
-                </div>
             </div>
-            <div class="gamelog">
-                <div>
+            <div id="errorlog" class="gamelog">
                 {% for line in error_log %}
                     <p> {{ line.0 }} </p>
                 {% endfor %}
-                </div>
             </div>
 
         </div>
         <div class="users">
             {% for user in board_status.users %}
-            <div class="user">
+            <div id="{{user.username}}_card" class="user">
                 <p> <b>Username:</b> {{ user.username }} </p>
         
                 <p> <b>Properties:</b> </p>
@@ -124,7 +120,7 @@
                 <div class= "props"> 
                 {% for property in user.properties %}
                     <div class="prop" style= "background-color: {{property.color}}; "> 
-                        {{property.number}}) {{ property.name }}: Level {{property.level}} <br>
+                        {{property.number}} {{ property.name }}: Level {{property.level}} <br>
                         {{ property.rents }} <br>
                     </div>
                 {% endfor %}
@@ -149,11 +145,12 @@
         }
         createwebsocket() {
             this.socket = new WebSocket('ws://' + this.ipport);
+            var s = this.socket
             this.socket.onopen = function() {
                 console.log('Connected')
-                this.socket.send('{{username}} gamelog')
+                s.send('{{username}} gamelog')
                 setInterval(function(){
-                    this.socket.send('{{username}} gamelog')
+                    s.send('{{username}} gamelog')
                 }, 3000)
             }
             this.socket.onerror = function() {
@@ -164,8 +161,31 @@
             }
             this.socket.onmessage = function(event) {
                 console.log('Message received')
-                console.log(event.data)
-                console.log(JSON.parse(event.data))
+                if (event.data[0] == '[')
+                {
+                    var gamelog = document.getElementById("gamelog");
+
+                    while (gamelog.firstChild) {
+                        gamelog.removeChild(gamelog.firstChild);
+                    }
+
+                    var gamelog_list = JSON.parse(event.data)
+                    for (var i = 0; i < gamelog_list.length; i ++) {
+                        var gamelog_entry = document.createElement("p");
+                        gamelog_entry.textContent = gamelog_list[i];
+                        gamelog.appendChild(gamelog_entry);
+                    }
+
+                    gamelog.scrollTo(0, gamelog.scrollHeight)
+                }
+                else
+                {
+                    var errorlog = document.getElementById("errorlog");
+                    var errorlog_entry = document.createElement("p");
+                    errorlog_entry.textContent = event.data
+                    errorlog.appendChild(errorlog_entry)
+                    errorlog.scrollTo(0, errorlog.scrollHeight)
+                }
             }
         }
     }
@@ -176,52 +196,45 @@
 
     // 0: close, 1: ready, 2: roll, 3: buy, 4: upgrade, 5: pick, 6: teleport, 7: end
     commandButtonHandler = function(id){
-            if (id == 0){
-                console.log('close')
-                ws.socket.send('{{username}} close')
-                window.location.href = "/board/{{ board_name }}/close";
-                return;
-            }
-            switch(id){
+        if (id == 0){
+            console.log('close')
+            ws.socket.send('{{username}} close')
+            window.location.href = "/board/{{ board_name }}/close";
+            return;
+        }
+        switch(id){
             case 1:
-            console.log('{{username}} ready')
+                console.log('{{username}} ready')
                 ws.socket.send('{{username}} ready')
-                location.reload();
                 break;
             case 2:
                 console.log('roll')
                 ws.socket.send('{{username}} roll')
-                location.reload();
                 break;
             case 3:
                 console.log('buy')
                 ws.socket.send('{{username}} buy')
-                location.reload();
                 break;
             case 4:
                 console.log("upgrade")
                 ws.socket.send('{{username}} upgrade')
-                location.reload();
                 break;
             case 5:
                 console.log("pick")
                 a = document.querySelector('#id_command_argument').value
                 ws.socket.send('{{username}} pick ' + a)
-                location.reload();
                 break;
             case 6:
                 console.log("teleport")
                 a = document.querySelector('#id_command_argument').value
                 ws.socket.send('{{username}} teleport ' + a)
-                location.reload();
                 break;
             case 7:
                 console.log("end")
                 ws.socket.send('{{username}} end')
-                location.reload();
                 break;
-            
         }
+        ws.socket.send('{{username}} gamelog')
     }
 
     const pickButtonHandler = (id) => {
