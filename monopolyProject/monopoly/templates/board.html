@@ -53,10 +53,11 @@
                 style="position: absolute; top: {{cell.y}}% ; left: {{cell.x}}%; width:{{cell.w}}%; height:{{ cell.h }}% ; opacity: 0.1;" onclick="pickButtonHandler({{cell.number}})()">
                 </button>
             {% endif %}
-            <img src="/static/images/monopoly.svg" id="monopoly" style="position: absolute; top: 34%; left: 32%; width: 36%; height: 18%">
-            <img src="/static/images/1.png" id="dice1" style="position: absolute; top: 60%; left: 45%; width: 5%; height: 5%">
-            <img src="/static/images/6.png" id="dice2" style="position: absolute; top: 60%; left: 50%; width: 5%; height: 5%">
         {% endfor %}
+        <img src="/static/images/monopoly.svg" id="monopoly" style="position: absolute; top: 34%; left: 32%; width: 36%; height: 18%">
+        <img src="/static/images/1.png" id="dice1" style="position: absolute; top: 60%; left: 45%; width: 5%; height: 5%">
+        <img src="/static/images/6.png" id="dice2" style="position: absolute; top: 60%; left: 50%; width: 5%; height: 5%">
+
         <form style="position: absolute; top: 52%; left: 47%; opacity: 1;">
             <input type="number" id="id_command_argument" name="id_command_argument" min="1" max="99" required
             style="height: 25px; width: 50px">
@@ -144,20 +145,36 @@
                 console.log('Message received')
                 if (event.data[0] == '[')
                 {
-                    var gamelog = document.getElementById("gamelog");
+                    var gamelog = document.getElementById("gamelog")
+                    var d1 = 0
+                    var d2 = 0
 
                     while (gamelog.firstChild) {
-                        gamelog.removeChild(gamelog.firstChild);
+                        gamelog.removeChild(gamelog.firstChild)
                     }
 
                     var gamelog_list = JSON.parse(event.data)
                     for (var i = 0; i < gamelog_list.length; i ++) {
-                        var gamelog_entry = document.createElement("p");
-                        gamelog_entry.textContent = gamelog_list[i];
+                        var gamelog_entry = document.createElement("p")
+                        gamelog_entry.textContent = gamelog_list[i]
                         gamelog.appendChild(gamelog_entry);
+
+                        if (gamelog_list[i].includes('tossed')) {
+                            var tossed = gamelog_list[i].indexOf('tossed')
+                            d1 = Number(gamelog_list[i].substring(tossed + 7)[0])
+                            d2 = Number(gamelog_list[i].substring(tossed + 10)[0])
+                        }
+                        
                     }
 
                     gamelog.scrollTo(0, gamelog.scrollHeight)
+
+                    var dice1 = document.getElementById("dice1")
+                    dice1.setAttribute("src", `/static/images/${d1}.png`)
+
+                    var dice2 = document.getElementById("dice2")
+                    dice2.setAttribute("src", `/static/images/${d2}.png`)
+
                 }
                 else if (event.data[0] == '{')
                 {
@@ -183,7 +200,6 @@
                             prop_entry.setAttribute("style", `background-color: ${users[i].properties[j].color}; `)
                             prop_entry.insertAdjacentHTML('beforeend', `${users[i].properties[j].number} ${users[i].properties[j].name}: Level ${users[i].properties[j].level} <br> ${users[i].properties[j].rents} <br>`)
                             props.appendChild(prop_entry)
-                            console.log(prop_entry)
                         }
 
                         user_entry.appendChild(props)
