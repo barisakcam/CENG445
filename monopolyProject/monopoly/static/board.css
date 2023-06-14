@@ -16,7 +16,7 @@
 .board-infos {
     float: right;
     width: 100%;
-    height: auto;
+    height: 800px;
     display: flex;
     justify-content: center; /* Horizontally center the flex items */
     align-items: center;
@@ -40,17 +40,20 @@
     float: left;
     width: 40%;
     border-radius: 10px;
-    background-color: beige;
+    background-color: gray;
 }
 
 .users {
     overflow-x: scroll;
+    overflow-y: auto;
     width: 80%;
     float: left;
+    height: 98%;
 }
 
 .user {
-    width: 40%;
+    width: 24%;
+    height: 98%;
     border: solid;
     border-color: black;
     float: left;
