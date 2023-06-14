@@ -13,7 +13,7 @@ from django.db import IntegrityError
 from .forms import *
 from .models import User
 
-PHASE2_PORT = 1234
+PHASE2_PORT = 12345
 sockets = {}
 errorlogs = {}
 WS_URI = 'ws://127.0.0.1:1234'
@@ -33,8 +33,8 @@ def socket_send(username, message, receive=False):
         print(e)
 
 def cell_position(context,num):
-    WIDTH = 1000
-    HEIGHT = 800
+    WIDTH = 100
+    HEIGHT = 100
     rows = (0,0,0,0)
     #print(num)
     if num>=8:
@@ -60,44 +60,45 @@ def cell_position(context,num):
     while i < rows[0]:
         x[i] = x_cur
         y[i] = y_cur
-        y_cur += HEIGHT/(rows[0]+1)
+        x_cur += HEIGHT/(rows[0]+1)
         i+=1
     while i < rows[0]+rows[1]:
         x[i] = x_cur
         y[i] = y_cur
-        x_cur += WIDTH/(rows[1]+1)
+        y_cur += WIDTH/(rows[1]+1)
         i+=1
     while i < rows[0]+rows[1]+rows[2]:
         x[i] = x_cur
         y[i] = y_cur
-        y_cur -= HEIGHT/(rows[0]+1)
+        x_cur -= HEIGHT/(rows[0]+1)
         i+=1
     while i < rows[0]+rows[1]+rows[2]+rows[3]:
         x[i] = x_cur
         y[i] = y_cur
-        x_cur -= WIDTH/(rows[1]+1)
+        y_cur -= WIDTH/(rows[1]+1)
         i+=1
 
     for i in range(num):
-        context["board_status"]["cells"][i]["x"] = int(x[i])
-        context["board_status"]["cells"][i]["y"] = int(y[i])
-        context["board_status"]["cells"][i]["h"] = int(HEIGHT/(rows[0]+1))
-        context["board_status"]["cells"][i]["w"] = int(WIDTH/(rows[1]+1))
-        context["board_status"]["cells"][i]["namex"] = int(x[i] + WIDTH/(rows[1]+1)/2)
-        context["board_status"]["cells"][i]["namey"] = int(2*y[i]/3 + (y[i] + HEIGHT/(rows[0]+1))/3)
-        context["board_status"]["cells"][i]["pricex"] = int(x[i] + WIDTH/(rows[1]+1)/2)
-        context["board_status"]["cells"][i]["pricey"] = int(y[i]/3 + 2*(y[i] + HEIGHT/(rows[0]+1))/3)
-        context["board_status"]["cells"][i]["ch"] = int(HEIGHT/(rows[0]+1)/2.25)
-        context["board_status"]["cells"][i]["userx"] = int(x[i]) + int(WIDTH/(rows[1]+1))/4
-        context["board_status"]["cells"][i]["usery"] = int(y[i]/4 + 3*(y[i] + HEIGHT/(rows[0]+1))/4)
-        context["board_status"]["cells"][i]["userh"] = int(HEIGHT/(rows[0]+1))/4
-        context["board_status"]["cells"][i]["userw"] = int(WIDTH/(rows[1]+1))/2
-        context["board_status"]["cells"][i]["tagx"] = int(x[i]) + int(WIDTH/(rows[1]+1))/2
-        context["board_status"]["cells"][i]["tagy"] = int(y[i]) + 7*int(HEIGHT/(rows[0]+1))/8
-        context["board_status"]["cells"][i]["levelx"] = int(x[i]) + 5*int(WIDTH/(rows[1]+1))/6
-        context["board_status"]["cells"][i]["levely"] = int(y[i]) + int(HEIGHT/(rows[0]+1))/6
-        context["board_status"]["cells"][i]["ownerx"] = int(x[i]) + int(WIDTH/(rows[1]+1))/4
-        context["board_status"]["cells"][i]["ownery"] = int(y[i]) + int(HEIGHT/(rows[0]+1))/6
+        #round to 2 decimal places
+        context["board_status"]["cells"][i]["x"] = (x[i]).__round__(2)
+        context["board_status"]["cells"][i]["y"] = (y[i]).__round__(2)
+        context["board_status"]["cells"][i]["h"] = (HEIGHT/(rows[0]+1)).__round__(2)
+        context["board_status"]["cells"][i]["w"] = (WIDTH/(rows[1]+1)).__round__(2)
+        context["board_status"]["cells"][i]["namex"] = (x[i] + WIDTH/(rows[1]+1)/2).__round__(2)
+        context["board_status"]["cells"][i]["namey"] = (2*y[i]/3 + (y[i] + HEIGHT/(rows[0]+1))/3).__round__(2)
+        context["board_status"]["cells"][i]["pricex"] = (x[i] + WIDTH/(rows[1]+1)/2).__round__(2)
+        context["board_status"]["cells"][i]["pricey"] = (y[i]/3 + 2*(y[i] + HEIGHT/(rows[0]+1))/3).__round__(2)
+        context["board_status"]["cells"][i]["ch"] = (HEIGHT/(rows[0]+1)/2.25).__round__(2)
+        context["board_status"]["cells"][i]["userx"] = ((x[i]) + (WIDTH/(rows[1]+1))/4).__round__(2)
+        context["board_status"]["cells"][i]["usery"] = (y[i]/4 + 3*(y[i] + HEIGHT/(rows[0]+1))/4).__round__(2)
+        context["board_status"]["cells"][i]["userh"] = ((HEIGHT/(rows[0]+1))/4).__round__(2)
+        context["board_status"]["cells"][i]["userw"] = ((WIDTH/(rows[1]+1))/2).__round__(2)
+        context["board_status"]["cells"][i]["tagx"] = ((x[i]) + (WIDTH/(rows[1]+1))/2).__round__(2)
+        context["board_status"]["cells"][i]["tagy"] = ((y[i]) + 9*(HEIGHT/(rows[0]+1))/10).__round__(2)
+        context["board_status"]["cells"][i]["levelx"] = ((x[i]) + 5*(WIDTH/(rows[1]+1))/6).__round__(2)
+        context["board_status"]["cells"][i]["levely"] = ((y[i]) + (HEIGHT/(rows[0]+1))/6).__round__(2)
+        context["board_status"]["cells"][i]["ownerx"] = ((x[i]) + (WIDTH/(rows[1]+1))/4).__round__(2)
+        context["board_status"]["cells"][i]["ownery"] = ((y[i]) + (HEIGHT/(rows[0]+1))/6).__round__(2)
     return context
 
 @login_required(login_url='/login')
