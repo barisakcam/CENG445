@@ -27,20 +27,6 @@
     </div>
 </div>-->
 
-<h2> Board: {{ board_name }}</h2>
-<a href="/board/{{ board_name }}/close">Close</a>
-<a href="/board/{{ board_name }}/ready">Ready</a>
-<a href="/board/{{ board_name }}/refresh">Refresh</a>
-
-
-<form class="command" method="post" action="/board/{{ board_name }}/command/" >
-    {% csrf_token %} 
-    {{ command_form.as_p }}
-
-    <input type="submit" value="{% trans 'Send' %}" />
-    <input type="hidden" name="next" value="{{ next }}" />
-</form>
-
 <div style="display: flex;">
     <div style="overflow-x: scroll; position: relative;">
         <svg class="board" viewBox="0 0 1000 1000" width="100%" height="100%" >
@@ -92,22 +78,22 @@
                 style="position: absolute; top: {{cell.y}}% ; left: {{cell.x}}%; width:{{cell.w}}%; height:{{ cell.h }}% ; opacity: 0.1;" onclick="pickButtonHandler({{cell.number}})()">
                 </button>
             {% endif %}
-            {% if cell.number == 7 %}
-                <img src="/static/images/monopoly.svg" id="monopoly" style="position: absolute; top: 38%; left: 30%; width: 40%; height: 11.1%">
-                <img src="/static/images/1.png" id="dice1" style="position: absolute; top: 60%; left: 45%; width: 5%; height: 5%">
-                <img src="/static/images/6.png" id="dice2" style="position: absolute; top: 60%; left: 50%; width: 5%; height: 5%">
-            {% endif %}
+            <img src="/static/images/monopoly.svg" id="monopoly" style="position: absolute; top: 34%; left: 32%; width: 36%; height: 18%">
+            <img src="/static/images/1.png" id="dice1" style="position: absolute; top: 60%; left: 45%; width: 5%; height: 5%">
+            <img src="/static/images/6.png" id="dice2" style="position: absolute; top: 60%; left: 50%; width: 5%; height: 5%">
         {% endfor %}
-        
-        <button style="position: absolute; top: 35%; left: 35%; width: 13%; height: 4%; opacity: 1;">Close</button>
-        <button style="position: absolute; top: 35%; left: 52%; width: 13%; height: 4%; opacity: 1;">Ready</button>
-
-        <button style="position: absolute; top: 52%; left: 35%; width: 8%; height: 3%; opacity: 1;">Roll</button>
-        <button style="position: absolute; top: 57%; left: 35%; width: 8%; height: 3%; opacity: 1;">Buy</button>
-        <button style="position: absolute; top: 62%; left: 35%; width: 8%; height: 3%; opacity: 1;">Upgrade</button>
-        <button style="position: absolute; top: 52%; left: 57%; width: 8%; height: 3%; opacity: 1;">Pick</button>
-        <button style="position: absolute; top: 57%; left: 57%; width: 8%; height: 3%; opacity: 1;">Teleport</button>
-        <button style="position: absolute; top: 62%; left: 57%; width: 8%; height: 3%; opacity: 1;">End</button>
+        <form style="position: absolute; top: 52%; left: 47%; opacity: 1;">
+            <input type="number" id="id_command_argument" name="id_command_argument" min="1" max="99" required
+            style="height: 25px; width: 50px">
+        </form>
+        <button style="position: absolute; top: 35%; left: 35%; width: 13%; height: 4%; opacity: 1;" onclick="commandButtonHandler(0)">Close</button>
+        <button style="position: absolute; top: 35%; left: 52%; width: 13%; height: 4%; opacity: 1;" onclick="commandButtonHandler(1)">Ready</button>
+        <button style="position: absolute; top: 52%; left: 35%; width: 8%; height: 3%; opacity: 1;" onclick="commandButtonHandler(2)">Roll</button>
+        <button style="position: absolute; top: 57%; left: 35%; width: 8%; height: 3%; opacity: 1;" onclick="commandButtonHandler(3)">Buy</button>
+        <button style="position: absolute; top: 62%; left: 35%; width: 8%; height: 3%; opacity: 1;" onclick="commandButtonHandler(4)">Upgrade</button>
+        <button style="position: absolute; top: 52%; left: 57%; width: 8%; height: 3%; opacity: 1;" onclick="commandButtonHandler(5)">Pick</button>
+        <button style="position: absolute; top: 57%; left: 57%; width: 8%; height: 3%; opacity: 1;" onclick="commandButtonHandler(6)">Teleport</button>
+        <button style="position: absolute; top: 62%; left: 57%; width: 8%; height: 3%; opacity: 1;" onclick="commandButtonHandler(7)">End</button>
           
     </div>
     <div class="infos">
@@ -158,27 +144,27 @@
 <script type="text/javascript">
     class Ws {
         constructor(ipport) {
-            this.socket = undefined;
             this.ipport = ipport;
             this.createwebsocket();
         }
         createwebsocket() {
-            var socket = new WebSocket('ws://' + this.ipport);
-            socket.onopen = function() {
+            this.socket = new WebSocket('ws://' + this.ipport);
+            this.socket.onopen = function() {
                 console.log('Connected')
-                socket.send('{{username}} gamelog')
+                this.socket.send('{{username}} gamelog')
                 setInterval(function(){
-                    socket.send('{{username}} gamelog')
+                    this.socket.send('{{username}} gamelog')
                 }, 3000)
             }
-            socket.onerror = function() {
+            this.socket.onerror = function() {
                 console.log('Connection failed')
             }
-            socket.onclose = function() {
+            this.socket.onclose = function() {
                 console.log('Connection closed')
             }
-            socket.onmessage = function(event) {
+            this.socket.onmessage = function(event) {
                 console.log('Message received')
+                console.log(event.data)
                 console.log(JSON.parse(event.data))
             }
         }
@@ -186,6 +172,56 @@
 
     window.onload = function () {
         ws = new Ws('127.0.0.1:1234')
+    }
+
+    // 0: close, 1: ready, 2: roll, 3: buy, 4: upgrade, 5: pick, 6: teleport, 7: end
+    commandButtonHandler = function(id){
+            if (id == 0){
+                console.log('close')
+                ws.socket.send('{{username}} close')
+                window.location.href = "/board/{{ board_name }}/close";
+                return;
+            }
+            switch(id){
+            case 1:
+            console.log('{{username}} ready')
+                ws.socket.send('{{username}} ready')
+                location.reload();
+                break;
+            case 2:
+                console.log('roll')
+                ws.socket.send('{{username}} roll')
+                location.reload();
+                break;
+            case 3:
+                console.log('buy')
+                ws.socket.send('{{username}} buy')
+                location.reload();
+                break;
+            case 4:
+                console.log("upgrade")
+                ws.socket.send('{{username}} upgrade')
+                location.reload();
+                break;
+            case 5:
+                console.log("pick")
+                a = document.querySelector('#id_command_argument').value
+                ws.socket.send('{{username}} pick ' + a)
+                location.reload();
+                break;
+            case 6:
+                console.log("teleport")
+                a = document.querySelector('#id_command_argument').value
+                ws.socket.send('{{username}} teleport ' + a)
+                location.reload();
+                break;
+            case 7:
+                console.log("end")
+                ws.socket.send('{{username}} end')
+                location.reload();
+                break;
+            
+        }
     }
 
     const pickButtonHandler = (id) => {
