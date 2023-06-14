@@ -131,35 +131,6 @@ div.excerpt p {
     word-wrap: break-word;
 }
 
-.users {
-    overflow-x: scroll;
-    width: 49.2%;
-    float: left;
-}
-
-.user {
-    width: 49.6%;
-    border: solid;
-    border-color: black;
-    float: left;
-    background-color: beige;
-}
-
-.gamelog {
-    overflow-y: scroll;
-    height:99%;
-    border: solid;
-    border-color: black;
-    display: flex;
-    flex-direction: column;
-    float: left;
-    width: 49.2%;
-}
-
-.logs {
-    height:400px;
-}
-
 .vertical-divider {
     border-left: 1px solid black;
 }
@@ -183,12 +154,4 @@ div.excerpt p {
     border: solid;
     border-color: black;
     border-width: 1px;
-}
-
-.infos {
-    float: right;
-    width: 50%;
-    height: auto;
-    display: flex;
-    flex-direction: column;
 }

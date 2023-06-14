@@ -12,3 +12,48 @@
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
+
+.board-infos {
+    float: right;
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center; /* Horizontally center the flex items */
+    align-items: center;
+    flex-direction: column;
+}
+
+.logs {
+    width: 80%;
+    height: 400px;
+    justify-content: center; /* Horizontally center the flex items */
+    align-items: center;
+}
+
+.gamelog {
+    overflow-y: scroll;
+    height:99%;
+    border: solid;
+    border-color: black;
+    display: flex;
+    flex-direction: column;
+    float: left;
+    width: 40%;
+    border-radius: 10px;
+    background-color: beige;
+}
+
+.users {
+    overflow-x: scroll;
+    width: 80%;
+    float: left;
+}
+
+.user {
+    width: 40%;
+    border: solid;
+    border-color: black;
+    float: left;
+    background-color: beige;
+    border-radius: 10px;
+}
