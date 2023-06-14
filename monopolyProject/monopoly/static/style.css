@@ -164,3 +164,20 @@ div.excerpt p {
 .spacer {
     flex-grow: 1;
 }
+
+.props {
+    overflow-y: scroll;
+    height:120px;
+    display: flex;
+    flex-direction: column;
+    float: left;
+    width: 100%;
+}
+.prop {
+    height: 33.3%;
+    float: left;
+    width: 99%;
+    border: solid;
+    border-color: black;
+    border-width: 1px;
+}

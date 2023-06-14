@@ -1,0 +1,93 @@
+{
+    "cells": [
+      {
+        "type": "start",
+        "cell": 0
+      },
+      {
+        "type": "property",
+        "name": "trabzonspor",
+        "cell": 1,
+        "color": "maroon",
+        "price": 100,
+        "rents": [40, 80, 150, 300, 500]
+      },
+      {
+        "type": "chance card",
+        "cell": 2
+      },
+      {
+        "type": "property",
+        "name": "besiktas",
+        "cell": 3,
+        "color": "black",
+        "price": 200,
+        "rents": [80, 150, 250, 400, 625]
+      },
+      {
+        "type": "teleport",
+        "cell": 4
+      },
+      {
+        "type": "property",
+        "name": "fenerbahce",
+        "cell": 5,
+        "color": "navy",
+        "price": 100,
+        "rents": [40, 75, 220, 600, 900]
+      },
+      {
+        "type": "jail",
+        "cell": 6
+      },
+      {
+        "type": "property",
+        "name": "galatasaray",
+        "cell": 7,
+        "color": "red",
+        "price": 100,
+        "rents": [40, 75, 220, 600, 900]
+      }
+    ],
+    "upgrade": 50,
+    "teleport": 100,
+    "jailbail": 100,
+    "tax": 30,
+    "lottery": 200,
+    "startup": 1500,
+    "chances": [
+      {
+        "type": "teleport"
+      },
+      {
+        "type": "goto jail"
+      },
+      {
+        "type": "upgrade"
+      },
+      {
+        "type": "color downgrade"
+      },
+      {
+        "type": "jail free"
+      },
+      {
+        "type": "lottery"
+      },
+      {
+        "type": "tax"
+      },
+      {
+        "type": "lottery"
+      },
+      {
+        "type": "color upgrade"
+      },
+      {
+        "type": "teleport"
+      },
+      {
+        "type": "downgrade"
+      }
+    ]
+  }
