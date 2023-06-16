@@ -206,12 +206,17 @@
                         }
 
                         user_entry.appendChild(props)
-                        console.log(cells[users[i].location].type)
-                        if (cells[users[i].location].type == 'property') {
-                            user_entry.insertAdjacentHTML('beforeend', `<p><b>Location:</b> ${users[i].location} - ${cells[users[i].location].name} </p>`)
+                        if(users[i].location) { 
+                            if (cells[users[i].location].type == 'property') {
+                                user_entry.insertAdjacentHTML('beforeend', `<p><b>Location:</b> ${users[i].location} - ${cells[users[i].location].name} </p>`)
+                            }
+                            else {
+                                user_entry.insertAdjacentHTML('beforeend', `<p><b>Location:</b> ${users[i].location} - ${cells[users[i].location].type} </p>`)
+                            }
                         }
-                        else
-                        user_entry.insertAdjacentHTML('beforeend', `<p><b>Location:</b> ${users[i].location} - ${cells[users[i].location].type} </p>`)
+                        else {
+                            user_entry.insertAdjacentHTML('beforeend', `<p><b>Location:</b> ${users[i].location} </p>`)
+                        }
                         user_entry.insertAdjacentHTML('beforeend', `<p><b>Money:</b> ${users[i].money} </p>`)
                         user_entry.insertAdjacentHTML('beforeend', `<p><b>Ready:</b> ${users[i].ready} </p>`)
                         user_entry.insertAdjacentHTML('beforeend', `<p><b>Turn:</b> ${users[i].isplaying} </p>`)
