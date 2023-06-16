@@ -51,24 +51,11 @@ def cell_position(context,num):
         elif num%4 == 3:
             rows = (num//4+1,num//4+1,num//4+1,num//4)
     else:
-        if num == 1:
-            rows = (1,0,0,0)
-        elif num == 2:
-            rows = (2,0,0,0)
-        elif num == 3:
-            rows = (2,1,0,0)
-        elif num == 4:
-            rows = (2,2,0,0)
-        elif num == 5:
-            rows = (2,2,1,0)
-        elif num == 6:
-            rows = (2,2,2,0)
-        elif num == 7:
-            rows = (2,2,2,1)
+        rows = (2,2,2,2)
 
     #print(rows)
-    x = num*[0]
-    y = num*[0]
+    x = num*[0] if num>8 else 8*[0]
+    y = num*[0] if num>8 else 8*[0]
 
     x_cur = 0
     y_cur = 0
